@@ -1,0 +1,31 @@
+All datas before MAPLE\n will delete while encoding.
+
+MAPLE       //MAPLE file must need this
+*MAPLE_TIME
+yyyy/MM/dd HH:mm:ss.fffffff     //Encoded time or optional time in method parameter
+H *STATUS   //File status
+    ADT yyyy/MM/dd HH:mm:ss.fffffff //Recent edit time
+    RDT yyyy/MM/dd HH:mm:ss.fffffff //Last edited time before ADT / Delete log files before RDT
+    CNT {int}   //Datas count //optional
+E
+H * //Headers include '*' are system header
+E
+H Data Headers
+    H Sub Data Header
+        CMT Comments
+        Tags Propaties  //Propaties cannot include 'CRLF'
+        Tags2 Propaties //Cannot use same tags in a Header except CMT and NTE in H NOTES
+        H Sub Data Header
+            Tags Propaties //Can use same tag in sub header used in parents header
+        E
+    E
+    H *NOTES     //Notes header
+        NTE {strimg}    //Notes main strings
+        NTE ...
+    E
+E
+H Data Headers2
+E
+EOF
+
+All datas after "\nEOF\n" will delete while encoding.
