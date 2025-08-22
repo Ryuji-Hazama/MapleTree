@@ -93,7 +93,7 @@ def toMaple(readFile, writeFile = None):
 
     while fileLine != "":
 
-        if writeFile != None:
+        if writeFile is not None:
 
             writeFile.write(fileLine)
 
@@ -171,7 +171,7 @@ def mapleFormatter(originalFile: str, saveFile: str = None) -> bool:
     *     to tmp file      *
     * - - - - - - - - - -'''
 
-    if saveFile == None:
+    if saveFile is None:
         saveFile = originalFile
 
     try:
@@ -221,10 +221,10 @@ def mapleFormatter(originalFile: str, saveFile: str = None) -> bool:
 
     finally:
         
-        if originalFileR != None:
+        if originalFileR is not None:
             originalFileR.close()
 
-        if saveFileTemp != None:
+        if saveFileTemp is not None:
             saveFileTemp.close()
 
 
@@ -326,7 +326,7 @@ def readMapleTag(fileName: str, tag: str, *headers: str) -> str:
         raise
     
     finally:
-        if mapleFile != None:
+        if mapleFile is not None:
             mapleFile.close()
 
 #
@@ -449,10 +449,10 @@ def saveTagLine(saveFile: str, tag: str, valueStr: str, *headers: str) -> bool:
 
     finally:
 
-        if mapleFile != None:
+        if mapleFile is not None:
             mapleFile.close()
 
-        if mapleCopyFile != None:
+        if mapleCopyFile is not None:
             mapleCopyFile.close()
 
 
@@ -578,10 +578,10 @@ def deleteTag(delFile: str, delTag: str, *headers: str) -> bool:
 
     finally:
 
-        if mapleFile != None:
+        if mapleFile is not None:
             mapleFile.close()
 
-        if mapleCopyFile != None:
+        if mapleCopyFile is not None:
             mapleCopyFile.close()
 
         if path.isfile(delCopyFile):
@@ -708,10 +708,10 @@ def deleteHeader(delFile: str, delHead: str, *Headers: str) -> bool:
 
     finally:
 
-        if mapleFile != None:
+        if mapleFile is not None:
             mapleFile.close()
 
-        if mapleCopyFile != None:
+        if mapleCopyFile is not None:
             mapleCopyFile.close()
 
         if path.isfile(delCopyFile):
