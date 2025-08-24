@@ -369,15 +369,16 @@ class MapleTree:
 
     #
     #################################
-    # Read tag line
+    # Find header
 
-    def readMapleTag(self, tag: str, *headers: str) -> str:
+    def _findHeader(self, *headers: str):
 
-        '''Read a Maple file tag line in headers'''
+        """Serch header index.\n
+        If the headers exist, return True, last header line index.\n
+        If the headers does not exist, return False, E line index, last found headers index."""
 
-        ind = 0
         headCount = len(headers)
-        headInd = self.mapleIndex
+        ind = 0
         eInd = self.eofIndex
 
         # Find header
@@ -387,24 +388,40 @@ class MapleTree:
             while ind < headCount:
 
                 header = f"{self.TAB_FORMAT * ind}H {headers[ind]}"
-                ind += 1
                 headInd = self.fileStream.index(header, headInd, eInd)
                 eInd = self.ToE(headInd)
+                
+                ind += 1
+
+            return True, eInd, headInd
 
         except ValueError:
 
-            if ind < 1:
+            return False, eInd, ind
+        
+        except InvalidMapleFileFormatException:
 
-                raise MapleHeaderNotFoundException(self.fileName, headers[ind])
-            
-            else:
-
-                raise MapleHeaderNotFoundException(self.fileName, headers[ind], headers[ind - 1])
+            raise
 
         except Exception as e:
         
             raise MapleException from e
         
+
+    # Need to modify here
+    #################################
+    # Read tag line
+
+    def readMapleTag(self, tag: str, *headers: str) -> str:
+
+        '''Read a Maple file tag line in headers'''
+
+        ind = 0
+        headInd = self.mapleIndex
+        eInd = self.eofIndex
+
+        isFound, eInd, headInd = self._findHeader(headers)
+
         # Find tag
 
         ind = headInd
@@ -438,7 +455,11 @@ class MapleTree:
     ###################################################
     # Save tag line
 
-    def saveTagLine(self, tag: str, valueStr: str, *headers: str) -> None:
+    def saveTagLine(self, tag: str, valueStr: str, willSave: bool, *headers: str) -> None:
+
+        """Save valueStr to tag in headers.
+        If the headers does not exist, create new headers.
+        Overwrte file if sillSave == True"""
 
         mapleFile = None
         mapleCopyFile = None
