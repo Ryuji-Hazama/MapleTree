@@ -122,14 +122,7 @@ class MapleTree:
             # Search data region
 
             self.mapleIndex = self.fileStream.index("MAPLE\n")
-
-            try:
-
-                self.eofIndex = self.fileStream.index("EOF\n", self.mapleIndex)
-
-            except:
-
-                self.eofIndex = self.fileStream.index("EOF", self.mapleIndex)
+            self.eofIndex = self._findEof(self.mapleIndex)
 
             # Check data format
 
@@ -295,6 +288,25 @@ class MapleTree:
 
             raise MapleHeaderNotFoundException(self.fileName, headers[headInd], headers[headInd - 1])
 
+    #
+    #################################
+    # Find EOF
+
+    def _findEof(self, startInd: int) -> int:
+
+        """"Find EOF line index"""
+
+        listLen = len(self.fileStream)
+
+        while startInd < listLen:
+
+            startInd += 1
+            
+            if self.__getTag(self.fileStream[startInd]) == "EOF":
+
+                return startInd
+            
+        raise InvalidMapleFileFormatException(self.fileName)
 
     #
     #################################
@@ -308,13 +320,13 @@ class MapleTree:
         while curInd < self.eofIndex:
 
             curInd += 1
-            mapleLine = self.__removeWhiteSpace(self.fileStream[curInd])
+            mapleTag = self.__getTag(self.fileStream[curInd])
 
-            if mapleLine == "E\n":
+            if mapleTag == "E":
 
                 return curInd
             
-            if self.__getTag(mapleLine) == "H":
+            elif mapleTag == "H":
 
                 curInd = self.__ToE(curInd)
 
@@ -390,7 +402,6 @@ class MapleTree:
         ind = 0
         headInd = self.mapleIndex
         eInd = self.eofIndex
-        self._mapleFormatter()
 
         # Find header
 
@@ -427,9 +438,13 @@ class MapleTree:
         while headInd < eInd:
 
             headInd += 1
-            tagLine = self.__removeWhiteSpace(self.fileStream[headInd])
+            tagLine = self.__getTag(self.fileStream[headInd])
 
-            if tagLine.startswith(f"{tag} "):
+            if tagLine == "H":
+
+                headInd = self.__ToE(headInd)
+
+            elif tagLine == tag:
 
                 return headInd
             
@@ -534,6 +549,10 @@ class MapleTree:
 
         self._mapleFormatter(willSave)
 
+        # Refresh EOF index
+
+        self.eofIndex = self._findEof(self.eofIndex - 1)
+
     #
     #############################
     # Delete tag line
@@ -556,9 +575,15 @@ class MapleTree:
             tagInd = self._findTagLine(delTag, headInd, eInd)
             self.fileStream.pop(tagInd)
 
+            # Save?
+
             if willSave:
 
                 self._saveToFile()
+
+            # Refresh EOF index
+
+            self.eofIndex = self._findEof(tagInd)
 
         except MapleDataNotFoundException as dnfe:
 
@@ -594,17 +619,18 @@ class MapleTree:
 
             # Get tag list
 
-            while headInd < eInd:
+            while headInd < eInd - 1:
 
                 headInd += 1
+                lineTag = self.__getTag(self.fileStream[headInd])
 
-                if self.fileStream[headInd].startswith("H "):
+                if lineTag == "H":
 
                     headInd = self.__ToE(headInd)
 
                 else:
 
-                    retList.append(self.__getTag(self.fileStream[headInd]))
+                    retList.append(lineTag)
 
             return retList
         
@@ -630,15 +656,20 @@ class MapleTree:
 
                 self.__headerNotFoundExceptionHnadler(headInd, Headers)
 
-            self._mapleFormatter()
             headInd = self.fileStream.index(f"{self.TAB_FORMAT * len(Headers)}H {delHead}\n", headInd, eInd)
             eInd = self.__ToE(headInd)
 
             self.fileStream = self.fileStream[:headInd] + self.fileStream[eInd + 1:]
 
+            # Save?
+
             if willSave:
 
                 self._saveToFile()
+
+            # Refresh EOF index
+
+            self.eofIndex = self._findEof(headInd + 1)
 
         except ValueError or MapleDataNotFoundException as ve:
 
