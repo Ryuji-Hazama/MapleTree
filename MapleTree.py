@@ -133,7 +133,7 @@ class MapleTree:
 
             # Check data format
 
-            self.mapleFormatter()
+            self._mapleFormatter()
             
         except MapleFileEmptyException:
 
@@ -172,11 +172,30 @@ class MapleTree:
     ##############################
     # Save to file
 
-    #    
+    def _saveToFile(self):
+
+        f = None
+
+        try:
+
+            f = open(self.fileName, "w")
+            f.writelines(self.fileStream)
+            f.close()
+
+        except Exception as e:
+
+            raise MapleException(e) from e
+        
+        finally:
+
+            if f is not None:
+                f.close()
+
+    #
     ##############################
     # Remove white space
 
-    def removeWhiteSpace(self, strLine: str) -> str:
+    def __removeWhiteSpace(self, strLine: str) -> str:
 
         strLen = len(strLine)
         ind = 0
@@ -194,7 +213,7 @@ class MapleTree:
     ################################
     # Get tag
 
-    def getTag(self, mapleLine: str) -> str:
+    def __getTag(self, mapleLine: str) -> str:
 
         """Get a tag from a data line."""
 
@@ -203,7 +222,7 @@ class MapleTree:
 
         # Remove white space in front and add return at the end
 
-        mapleLine = f"{self.removeWhiteSpace(mapleLine)}\n"
+        mapleLine = f"{self.__removeWhiteSpace(mapleLine)}\n"
         strLen = len(mapleLine)
 
         # Start read tag
@@ -225,7 +244,7 @@ class MapleTree:
     ###########################
     # Get value
 
-    def getValue(self, mapleLine: str) -> str:
+    def __getValue(self, mapleLine: str) -> str:
 
         """Get a value from a data line."""
 
@@ -233,7 +252,7 @@ class MapleTree:
 
         # Remove white space in front
 
-        mapleLine = self.removeWhiteSpace(mapleLine)
+        mapleLine = self.__removeWhiteSpace(mapleLine)
         strLen = len(mapleLine)
         
         if strLen < 2 or mapleLine == "":
@@ -261,22 +280,27 @@ class MapleTree:
         else:
 
             return mapleLine[ind:strLen - 1]
-
+        
     #
-    #######################
-    # To MAPLE
+    ####################################
+    # Header not found exception handler
 
-    def toMaple(self) -> int:
+    def __headerNotFoundExceptionHnadler(self, headInd: int, *headers: str) -> None:
 
-        """Return line index of \"MAPLE\\n\""""
+        if headInd < 1:
 
-        return self.mapleIndex
+            raise MapleHeaderNotFoundException(self.fileName, headers[headInd])
+        
+        else:
+
+            raise MapleHeaderNotFoundException(self.fileName, headers[headInd], headers[headInd - 1])
+
 
     #
     #################################
     # ToE
 
-    def ToE(self, curInd: int) -> int:
+    def __ToE(self, curInd: int) -> int:
 
         """Return E tag line index of current level
         Raise"""
@@ -284,23 +308,23 @@ class MapleTree:
         while curInd < self.eofIndex:
 
             curInd += 1
-            mapleLine = self.fileStream[curInd]
+            mapleLine = self.__removeWhiteSpace(self.fileStream[curInd])
 
             if mapleLine == "E\n":
 
                 return curInd
             
-            if self.getTag(mapleLine) == "H":
+            if self.__getTag(mapleLine) == "H":
 
-                curInd = self.ToE(curInd)
+                curInd = self.__ToE(curInd)
 
-        raise InvalidMapleFileFormatException
+        raise InvalidMapleFileFormatException(self.fileName)
 
     #
     ######################
     # Format maple file
 
-    def mapleFormatter(self, willSave: bool = False):
+    def _mapleFormatter(self, willSave: bool = False):
 
         """Format Maple stream
         and save to file if willSave is True"""
@@ -313,8 +337,8 @@ class MapleTree:
 
             for i, mapleLine in enumerate(self.fileStream, self.mapleIndex):
 
-                mapleLine = self.removeWhiteSpace(mapleLine)
-                tag = self.getTag(mapleLine)
+                mapleLine = self.__removeWhiteSpace(mapleLine)
+                tag = self.__getTag(mapleLine)
 
                 if tag == "EOF":
 
@@ -349,29 +373,14 @@ class MapleTree:
         # Save to file
         
         if willSave:
-
-            f = None
-
-            try:
-
-                f = open(self.fileName, "w")
-                f.writelines(self.fileStream)
-                f.close()
-
-            except Exception as e:
-
-                raise MapleException(e) from e
             
-            finally:
-
-                if f is not None:
-                    f.close()
+            self._saveToFile()
 
     #
     #################################
     # Find header
 
-    def _findHeader(self, *headers: str):
+    def _findHeader(self, headers: list):
 
         """Serch header index.\n
         If the headers exist, return True, last header line index.\n
@@ -379,7 +388,9 @@ class MapleTree:
 
         headCount = len(headers)
         ind = 0
+        headInd = self.mapleIndex
         eInd = self.eofIndex
+        self._mapleFormatter()
 
         # Find header
 
@@ -387,10 +398,10 @@ class MapleTree:
 
             while ind < headCount:
 
-                header = f"{self.TAB_FORMAT * ind}H {headers[ind]}"
+                header = f"{self.TAB_FORMAT * ind}H {headers[ind]}\n"
                 headInd = self.fileStream.index(header, headInd, eInd)
-                eInd = self.ToE(headInd)
-                
+                eInd = self.__ToE(headInd)
+
                 ind += 1
 
             return True, eInd, headInd
@@ -407,581 +418,276 @@ class MapleTree:
         
             raise MapleException from e
         
+    #
+    #################################
+    # Find tag line
 
-    # Need to modify here
+    def _findTagLine(self, tag: str, headInd: int, eInd: int) -> int:
+
+        while headInd < eInd:
+
+            headInd += 1
+            tagLine = self.__removeWhiteSpace(self.fileStream[headInd])
+
+            if tagLine.startswith(f"{tag} "):
+
+                return headInd
+            
+        raise MapleTagNotFoundException(self.fileName, tag)
+
+    #
     #################################
     # Read tag line
 
     def readMapleTag(self, tag: str, *headers: str) -> str:
 
-        '''Read a Maple file tag line in headers'''
+        '''Read a Maple file tag line value in headers'''
 
-        ind = 0
         headInd = self.mapleIndex
         eInd = self.eofIndex
 
+        # Serch headers
+
         isFound, eInd, headInd = self._findHeader(headers)
+
+        if not isFound:
+
+            self.__headerNotFoundExceptionHnadler(headInd, headers)
 
         # Find tag
 
-        ind = headInd
-
         try:
-                
-            while ind < eInd:
 
-                ind += 1
-                fileLine = self.removeWhiteSpace(self.fileStream[headInd])
-                
-                if fileLine.startswith(f"{tag} "):
+            ind = self._findTagLine(tag, headInd, eInd)
+            return self.__getValue(self.fileStream[ind])
 
-                    return self.getValue(fileLine)
-                
-                elif fileLine.startswith("H "):
+        except MapleTagNotFoundException as tnfe:
 
-                    ind = self.ToE(ind)
-
-            raise MapleTagNotFoundException
-
-        except MapleTagNotFoundException:
-
-            raise MapleTagNotFoundException(self.fileName, tag, headers[len(headers) - 1])
+            raise MapleTagNotFoundException(self.fileName, tag, headers[len(headers) - 1]) from tnfe
         
         except Exception as e:
 
             raise MapleException(e) from e
 
-    # Rewriting here
+    #
     ###################################################
     # Save tag line
 
     def saveTagLine(self, tag: str, valueStr: str, willSave: bool, *headers: str) -> None:
 
-        """Save valueStr to tag in headers.
-        If the headers does not exist, create new headers.
+        """Save valueStr to tag in headers.\n
+        If the headers does not exist, create new headers.\n
         Overwrte file if sillSave == True"""
 
-        mapleFile = None
-        mapleCopyFile = None
-        ind = 0
-        headCount = len(headers)
-        EorEOF = ""
+        # Find headers
 
-        ''' - - - - - - - - - - - - - - -*
-        * Copy file to tmp file and save *
-        * - - - - - - - - - - - - - - -'''
+        isHead, eInd, headInd = self._findHeader(headers)
 
-        try:
+        if not isHead:
+
+            # Create new headers
+
+            headLen = len(headers)
+
+            while headInd < headLen:
+
+                self.fileStream.insert(eInd, f"H {headers[headInd]}\n")
+                eInd += 1
+                self.fileStream.insert(eInd, "E\n")
+                headInd += 1
+
+            tagInd = eInd
+
+        else:
+
+            # Find tag
+
+            try:
+
+                tagInd = self._findTagLine(tag, headInd, eInd)
+
+            except MapleTagNotFoundException:
+
+                # If the tag does not exist
+
+                tagInd = eInd
+
+            except Exception as e:
+
+                raise MapleException(e) from e
             
-            if not path.isfile(saveFile):
-                
-                return False
+        # Save tag line
 
-            # Create copy file name
+        if tagInd == eInd:
 
-            mapleCopyFileName = f"{saveFile}.tmp"
+            # If it is a new line
 
-            while path.isfile(mapleCopyFileName):
-                mapleCopyFileName = f"{saveFile}{ind}.tmp"
-                ind += 1
+            self.fileStream.insert(tagInd, f"{tag} {valueStr}\n")
 
-            # Open files
+        else:
 
-            ind = 0
-            mapleFile = open(saveFile, "r")
-            mapleCopyFile = open(mapleCopyFileName, "w")
+            # Overwite
 
-            # Serch save headers
+            self.fileStream[tagInd] = f"{tag} {valueStr}\n"
 
-            while ind < headCount:
+        # Save?
 
-                fileLine = mapleFile.readline()
-                lineTag = getTag(fileLine)
-
-                if lineTag == "H":
-
-                    mapleCopyFile.write(fileLine)
-
-                    if getValue(fileLine) == headers[ind] or headers[ind] == "*":
-                        ind += 1
-                    else:
-                        ToEwithW(mapleFile, mapleCopyFile)
-
-                elif lineTag == "E" or lineTag == "EOF":
-
-                    EorEOF = fileLine
-
-                    break
-
-                else:
-
-                    mapleCopyFile.write(fileLine)
-
-            # Add headers
-
-            eCount = 0
-
-            while ind < headCount:
-
-                mapleCopyFile.write(f"H {headers[ind]}\n")
-                ind += 1
-                eCount += 1
-
-            # Serch tag
-
-            if EorEOF == "":
-
-                while True:
-
-                    fileLine = mapleFile.readline()
-                    lineTag = getTag(fileLine)
-
-                    if lineTag == tag:
-                        break
-
-                    elif lineTag == "E" or lineTag == "EOF":
-                        EorEOF = fileLine
-                        break
-
-                    else:
-
-                        mapleCopyFile.write(fileLine)
-
-                        if lineTag == "H":
-                            ToEwithW(mapleFile, mapleCopyFile)
-
-            # Save line
-
-            mapleCopyFile.write(f"{tag} {valueStr}")
-
-            while eCount > 0:
-                mapleCopyFile.write("\nE")
-                eCount -= 1
-
-            mapleCopyFile.write(f"\n{EorEOF}")
-
-            # Copy till the end
-
-            fileLine = mapleFile.readline()
-
-            while fileLine != "":
-                mapleCopyFile.write(fileLine)
-                fileLine = mapleFile.readline()
-
-        except Exception as ex:
-
-            print(ex)
-            raise
-
-        finally:
-
-            if mapleFile is not None:
-                mapleFile.close()
-
-            if mapleCopyFile is not None:
-                mapleCopyFile.close()
-
-
-        ''' - - - - - - - - - - - - -*
-        * Format and copy saved data *
-        *     to original file       *
-        * - - - - - - - - - - - - -'''
-
-        mapleFormatter(mapleCopyFileName, saveFile)
-        remove(mapleCopyFileName)
-
-        return True
+        self._mapleFormatter(willSave)
 
     #
     #############################
     # Delete tag line
 
-    def deleteTag(delFile: str, delTag: str, *headers: str) -> bool:
+    def deleteTag(self, delTag: str, willSave: bool = False, *headers: str) -> bool:
 
         """
-        Delete tag(delTag) from header(headers) in Maple file(delFile)
+        Delete tag(delTag) from header(headers) in Maple file(delFile)\n
         Return True if it success.
         """
 
-        mapleFile = None
-        mapleCopyFile = None
+        try:
+
+            gotHeader, eInd, headInd = self._findHeader(headers)
+
+            if not gotHeader:
+
+                self.__headerNotFoundExceptionHnadler(headInd, headers)
+
+            tagInd = self._findTagLine(delTag, headInd, eInd)
+            self.fileStream.pop(tagInd)
+
+            if willSave:
+
+                self._saveToFile()
+
+        except MapleDataNotFoundException as dnfe:
+
+            raise MapleDataNotFoundException(self.fileName) from dnfe
+        
+        except Exception as ex:
+
+            raise MapleException(ex) from ex
+        
+        return True
+
+    #
+    ############################
+    # Get tags list
+
+    def getTags(self, *headers: str) -> list[str]:
+
+        """
+        Get and return tags list from headers in Maple file(readFile)
+        """
+
+        retList = []
 
         try:
 
-            if not path.isfile(delFile):
-
-                return False
-            
-            # Create tmp file name
-
-            delCopyFile = f"{delFile}.tmp"
-            ind = 0
-
-            while path.isfile(delCopyFile):
-
-                delCopyFile = f"{delFile}{ind}.tmp"
-                int += 1
-
-            mapleFile = open(delFile, "r")
-            mapleCopyFile = open(delCopyFile, "w")
-
-            # Move to MAPLE tag
-
-            toMaple(mapleFile, mapleCopyFile)
-
-            # Dig into headers
-
-            ind = 0
-
-            while ind < len(headers):
-
-                fileLine = mapleFile.readline()
-                mapleCopyFile.write(fileLine)
-                lineTag = getTag(fileLine)
-
-                if lineTag == "H":
-
-                    lineValue = getValue(fileLine)
-
-                    if lineValue == headers[ind]:
-
-                        ind += 1
-                        deepestInd = ind
-
-                    else:
-
-                        ToEwithW(mapleFile, mapleCopyFile)
-
-                elif lineTag == "E":
-
-                    ind -= 1
-
-                elif lineTag == "EOF":
-
-                    return False
-            
-            # Search tag
-
-            while True:
-
-                fileLine = mapleFile.readline()
-                lineTag = getTag(fileLine)
-
-                if lineTag == delTag:
-
-                    break
-
-                elif lineTag == "E" or lineTag == "EOF" or fileLine == "":
-
-                    return False
+            # Find header
                 
+            gotHeader, eInd, headInd = self._findHeader(headers)
+
+            if not gotHeader:
+
+                self.__headerNotFoundExceptionHnadler(headInd, headers)
+
+            # Get tag list
+
+            while headInd < eInd:
+
+                headInd += 1
+
+                if self.fileStream[headInd].startswith("H "):
+
+                    headInd = self.__ToE(headInd)
+
                 else:
 
-                    mapleCopyFile.write(fileLine)
+                    retList.append(self.__getTag(self.fileStream[headInd]))
 
-            # Copy to the end
+            return retList
+        
+        except MapleDataNotFoundException as dnfe:
 
-            fileLine = mapleFile.readline()
-
-            while fileLine != "":
-
-                mapleCopyFile.write(fileLine)
-                fileLine = mapleFile.readline()
-
-            mapleFile.close()
-            mapleCopyFile.close()
-
-            # Format file
-
-            mapleFormatter(delCopyFile, delFile)
-
-            return True
-
+            raise MapleDataNotFoundException(self.fileName) from dnfe
+        
         except Exception as ex:
 
-            print(ex)
-            raise
-
-        finally:
-
-            if mapleFile is not None:
-                mapleFile.close()
-
-            if mapleCopyFile is not None:
-                mapleCopyFile.close()
-
-            if path.isfile(delCopyFile):
-                remove(delCopyFile)
+            raise MapleException(ex) from ex
 
     #
     #############################
     # Delete header
 
-    def deleteHeader(delFile: str, delHead: str, *Headers: str) -> bool:
-
-        mapleFile = None
-        mapleCopyFile = None
-        ind = 0
+    def deleteHeader(self, delHead: str, willSave: bool = False, *Headers: str) -> bool:
 
         try:
 
-            if not path.isfile(delFile):
+            gotHeader, eInd, headInd = self._findHeader(Headers)
 
-                return False
+            if not gotHeader:
 
-            # Create tmp file name
+                self.__headerNotFoundExceptionHnadler(headInd, Headers)
 
-            delCopyFile = f"{delFile}.tmp"
+            self._mapleFormatter()
+            headInd = self.fileStream.index(f"{self.TAB_FORMAT * len(Headers)}H {delHead}\n", headInd, eInd)
+            eInd = self.__ToE(headInd)
 
-            while path.isfile(delCopyFile):
+            self.fileStream = self.fileStream[:headInd] + self.fileStream[eInd + 1:]
 
-                delCopyFile = f"{delFile}{ind}.tmp"
-                ind += 1
+            if willSave:
 
-            mapleFile = open(delFile, "r")
-            mapleCopyFile = open(delCopyFile, "w")
-            ind = 0
+                self._saveToFile()
 
-            # Move to MAPLE tag
+        except ValueError or MapleDataNotFoundException as ve:
 
-            toMaple(mapleFile, mapleCopyFile)
+            raise MapleDataNotFoundException(self.fileName) from ve
+        
+        except Exception as e:
 
-            # Dig into headers
-
-            while ind < len(Headers):
-
-                fileLine = mapleFile.readline()
-                mapleCopyFile.write(fileLine)
-                lineTag = getTag(fileLine)
-
-                if lineTag == "H":
-
-                    lineValue = getValue(fileLine)
-
-                    if lineValue == Headers[ind]:
-
-                        ind += 1
-                        deepestInd = ind
-
-                    else:
-
-                        ToEwithW(mapleFile, mapleCopyFile)
-
-                elif lineTag == "E":
-
-                    ind -= 1
-
-                elif lineTag == "EOF":
-
-                    return False
-
-            # Serch delete header
-
-            fileLine = mapleFile.readline()
-
-            while fileLine != "":
-
-                lineTag = getTag(fileLine)
-
-                if lineTag == "H":
-
-                    lineValue = getValue(fileLine)
-
-                    if lineValue == delHead:
-
-                        # Delete header
-
-                        ToE(mapleFile)
-                        break
-
-                    else:
-
-                        mapleCopyFile.write(fileLine)
-                        ToEwithW(mapleFile, mapleCopyFile)
-
-                else:
-
-                    mapleCopyFile.write(fileLine)
-
-                    if lineTag == "EOF" or lineTag == "E":
-
-                        return False
-
-                fileLine = mapleFile.readline()
-
-            # Copy to the end
-
-            fileLine = mapleFile.readline()
-
-            while fileLine != "":
-
-                mapleCopyFile.write(fileLine)
-                fileLine = mapleFile.readline()
-
-            mapleFile.close()
-            mapleCopyFile.close()
-
-            # Format file
-
-            mapleFormatter(delCopyFile, delFile)
-
-            return True
-
-        except Exception as ex:
-
-            print(ex)
-            raise
-
-        finally:
-
-            if mapleFile is not None:
-                mapleFile.close()
-
-            if mapleCopyFile is not None:
-                mapleCopyFile.close()
-
-            if path.isfile(delCopyFile):
-                remove(delCopyFile)
+            raise MapleException(e) from e
+        
+        return True
 
     #
     ############################
     # Get headers list
 
-    def getHeaders(readFile: str, *headers: str) -> list[str]:
+    def getHeaders(self, *headers: str) -> list:
 
         """
         Get and return headers list from headers in Maple file(readFile)
         """
 
         retList = []
-        headCount = len(headers)
-        i = 0
-        f = None
 
         try:
 
-            f = open(readFile)
+            gotHeader, eInd, headInd = self._findHeader(headers)
 
-            while headCount > i:
+            if not gotHeader:
 
-                fileLine = f.readline()
-                tag = getTag(fileLine)
+                self.__headerNotFoundExceptionHnadler(headInd, headers)
 
-                if tag == "H":
+            while headInd < eInd:
 
-                    val = getValue(fileLine)
+                headInd += 1
+                fileLine = self.__removeWhiteSpace(self.fileStream[headInd])
 
-                    if val == headers[i]:
+                if fileLine.startswith("H "):
 
-                        i += 1
+                    retList.append(self.__getValue(fileLine))
+                    headInd = self.__ToE(headInd)
 
-                    else:
+        except MapleDataNotFoundException as dnfe:
 
-                        ToE(f)
-
-                elif tag == "E":
-
-                    i -= 1
-
-                elif tag == "EOF":
-
-                    return retList
-                
-            tag = ""
-                
-            while tag not in {"E", "EOF"}:
-
-                fileLine = f.readline()
-                tag = getTag(fileLine)
-
-                if tag == "H":
-
-                    retList.append(getValue(fileLine))
-                    ToE(f)
-
+            raise MapleDataNotFoundException(self.fileName) from dnfe
+        
         except Exception as ex:
 
-            print(ex)
-            raise
-
-        finally:
-
-            if f is not None:
-
-                f.close()
-
-        return retList
-
-    #
-    ############################
-    # Get tag list
-
-    def getTags(readFile: str, *headers: str) -> list[str]:
-
-        """
-        Get and return tag list from headers in Maple file(readFile)
-        """
-
-        retList = []
-        headCount = len(headers)
-        i = 0
-        f = None
-
-        try:
-
-            f = open(readFile)
-
-            while headCount > i:
-
-                fileLine = f.readline()
-                tag = getTag(fileLine)
-
-                if tag == "H":
-
-                    val = getValue(fileLine)
-
-                    if val == headers[i]:
-
-                        i += 1
-
-                    else:
-
-                        ToE(f)
-
-                elif tag == "E":
-
-                    i -= 1
-
-                elif tag == "EOF":
-
-                    return retList
-                
-            tag = ""
-                
-            while tag not in {"E", "EOF"}:
-
-                fileLine = f.readline()
-                tag = getTag(fileLine)
-
-                if tag == "H":
-
-                    ToE(f)
-
-                elif tag not in {"E", "EOF"}:
-
-                    retList.append(tag)
-
-        except Exception as ex:
-
-            print(ex)
-            raise
-
-        finally:
-
-            if f is not None:
-
-                f.close()
-
+            raise MapleException(ex) from ex
+        
         return retList
 
 #
