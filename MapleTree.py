@@ -1,7 +1,11 @@
-from os import path, remove
+import datetime
+from enum import IntEnum
+import inspect
+from os import path, remove, getpid
 import os
 from shutil import move
 import subprocess
+import traceback
 import uuid
 
 ################################
@@ -427,7 +431,7 @@ class MapleTree:
 
         except Exception as e:
         
-            raise MapleException from e
+            raise MapleException(e) from e
         
     #
     #################################
@@ -594,6 +598,50 @@ class MapleTree:
             raise MapleException(ex) from ex
         
         return True
+    #
+    ############################
+    # Get tag value dictioanry
+
+    def getTagValueDic(self, *headers: str) -> dict[str:str]:
+
+        """Get and return tag:value dictionary from headers in Maple file"""
+
+        retDic = {}
+
+        try:
+
+            # Find header
+
+            gotHeader, eInd, headInd = self._findHeader(headers)
+
+            if not gotHeader:
+
+                self.__headerNotFoundExceptionHnadler(headInd, headers)
+
+            # Get tag and values
+
+            while headInd < eInd - 1:
+
+                headInd += 1
+                lineTag = self.__getTag(self.fileStream[headInd])
+
+                if lineTag == "H":
+
+                    headInd = self.__ToE(headInd)
+
+                else:
+
+                    retDic[lineTag] = self.__getValue(self.fileStream[headInd])
+
+            return retDic
+        
+        except MapleDataNotFoundException as dnfe:
+
+            raise MapleDataNotFoundException(self.fileName) from dnfe
+        
+        except Exception as ex:
+
+            raise MapleException(ex) from ex
 
     #
     ############################
@@ -720,6 +768,209 @@ class MapleTree:
             raise MapleException(ex) from ex
         
         return retList
+
+class Logger:
+
+    def __init__(self, func: str = "", workingDirectory: str | None = None, cmdLogLevel: str | None = None, fileLogLevel: str | None = None, maxLogSize: float | None = None):
+
+        if workingDirectory is not None:
+
+            self.CWD = workingDirectory
+
+        else:
+
+            self.CWD = os.getcwd()
+        
+        self.logfile = path.join(self.CWD, "logs", f"log_{datetime.datetime.now():%Y%m%d}.log")
+        self.intMaxValue = 4294967295
+        self.consoleLogLevel = -1
+        self.fileLogLevel = -1
+        self.func = func
+        
+        configFile = path.join(self.CWD, "config.mpl")
+
+        #
+        ############################
+        # Check log directory
+
+        if not path.isdir(path.join(self.CWD, "logs")):
+            os.makedirs(path.join(self.CWD, "logs"))
+
+        #
+        ############################
+        # Check config file
+
+        maple = None
+
+        if path.isfile(configFile):
+
+            maple = MapleTree(configFile)
+
+        #
+        ############################
+        # Set max log file size
+
+        self.maxLogSize = 0
+
+        if maxLogSize is not None:
+
+            self.maxLogSize = maxLogSize * 1000000
+
+        elif maple is not None:
+
+            logSizeStr = maple.readMapleTag("MAX", "*LOG_SETTINGS")
+
+            if logSizeStr != "":
+
+                try:
+
+                    self.maxLogSize = float(logSizeStr) * 1000000
+
+                except:
+
+                    pass
+
+        if self.maxLogSize == 0:
+
+            self.maxLogSize = 3000000
+
+        #
+        ############################
+        # Set output log levels
+
+        self.consoleLogLevel = -1
+        self.fileLogLevel = -1
+
+        # Console log level
+
+        if cmdLogLevel is not None:
+
+            self.consoleLogLevel = self.isLogLevel(cmdLogLevel)
+
+        if self.consoleLogLevel == -1 and maple is not None:
+
+            self.consoleLogLevel = self.isLogLevel(maple.readMapleTag("CMD", "*LOG_SETTINGS"))
+
+        if self.consoleLogLevel == -1:
+
+            self.consoleLogLevel = self.LogLevel.INFO
+
+        # File log level
+
+        if fileLogLevel is not None:
+
+            self.fileLogLevel = self.isLogLevel(fileLogLevel)
+
+        if self.fileLogLevel == -1 and maple is not None:
+
+            self.fileLogLevel = self.isLogLevel(maple.readMapleTag("FLE", "*LOG_SETTINGS"))
+
+        if self.fileLogLevel == -1:
+
+            self.fileLogLevel = self.LogLevel.INFO
+
+    #
+    #####################
+    # Set log level enum
+
+    class LogLevel(IntEnum):
+
+        TRACE = 0
+        DEBUG = 1
+        INFO = 2
+        WARN = 3
+        ERROR = 4
+        FATAL = 5
+
+    #
+    ################
+    # Check log level
+
+    def isLogLevel(self, lLStr: str) -> LogLevel:
+
+        for lLevel in self.LogLevel:
+            if lLStr == lLevel.name:
+                return lLevel
+
+        return -1
+
+    #
+    #################################
+    # Logger
+
+    def logWriter(self, loglevel: LogLevel, message: any):
+
+        """
+        Output log to log file and console.
+        """
+
+        ''' - - - - - - -*
+        *                *
+        * Logging Object *
+        *                *
+        * - - - - - - -'''
+
+        f = open(self.logfile, "a")
+
+        # Get caller informations
+
+        callerFunc = inspect.stack()[1].function
+        callerLine = inspect.stack()[1].lineno
+
+        try:
+
+            # Export to console and log file
+
+            if loglevel >= self.consoleLogLevel:
+                print(f"[{loglevel.name:5}][{self.func}] {callerFunc}({callerLine}) {message}")
+        
+            if loglevel >= self.fileLogLevel:
+                print(f"({getpid()}) {datetime.datetime.now():%Y-%m-%d %H:%M:%S} [{loglevel.name:5}][{self.func}] {callerFunc}({callerLine}) {message}", file=f)
+
+        except Exception as ex:
+
+            # If faled to export, print error info to console
+
+            print(f"[ERROR] {ex}")
+
+        finally:
+            f.close()
+
+        if self.maxLogSize > 0:
+
+            # Check file size
+
+            try:
+
+                if path.getsize(self.logfile) > self.maxLogSize:
+
+                    i = 0
+                    logCopyFile = f"{self.logfile}{i}.log"
+
+                    while path.isfile(logCopyFile):
+
+                        i += 1
+                        logCopyFile = f"{self.logfile}{i}.log"
+
+                    os.rename(self.logfile, logCopyFile)
+
+            except Exception as ex:
+                print(f"[ERROR] {ex}")
+
+    #
+    ################################
+    # Error messages
+
+    def ShowError(self, ex: Exception, message: str | None = None):
+
+        '''Show and log error'''
+
+        if message is not None:
+
+            self.logWriter(self.LogLevel.ERROR, message)
+
+        self.logWriter(self.LogLevel.ERROR, ex)
+        self.logWriter(self.LogLevel.ERROR, traceback.format_exc())
 
 #
 ############################
