@@ -1,0 +1,7 @@
+MAPLE
+H *LOG_SETTINGS
+    CMD INFO
+    FLE INFO
+    MAX 3
+E
+EOF

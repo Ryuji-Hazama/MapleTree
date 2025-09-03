@@ -773,6 +773,10 @@ class Logger:
 
     def __init__(self, func: str = "", workingDirectory: str | None = None, cmdLogLevel: str | None = None, fileLogLevel: str | None = None, maxLogSize: float | None = None):
 
+        """
+        Set a negative value to maxLogSize for an infinite log file size.
+        """
+
         if workingDirectory is not None:
 
             self.CWD = workingDirectory
@@ -800,11 +804,24 @@ class Logger:
         ############################
         # Check config file
 
-        maple = None
+        try:
 
-        if path.isfile(configFile):
+            if not path.isfile(configFile):
 
+                f = open(configFile, "w")
+                f.write("MAPLE\n"
+                        "H *LOG_SETTINGS\n"
+                        "    CMD INFO\n"
+                        "    FLE INFO\n"
+                        "    MAX 3\n"
+                        "E\nEOF\n")
+                f.close()
+                
             maple = MapleTree(configFile)
+
+        except:
+
+            maple = None
 
         #
         ############################
@@ -818,17 +835,17 @@ class Logger:
 
         elif maple is not None:
 
-            logSizeStr = maple.readMapleTag("MAX", "*LOG_SETTINGS")
+            try:
 
-            if logSizeStr != "":
+                logSizeStr = maple.readMapleTag("MAX", "*LOG_SETTINGS")
 
-                try:
+                if logSizeStr != "":
 
                     self.maxLogSize = float(logSizeStr) * 1000000
 
-                except:
+            except:
 
-                    pass
+                pass
 
         if self.maxLogSize == 0:
 
@@ -849,7 +866,13 @@ class Logger:
 
         if self.consoleLogLevel == -1 and maple is not None:
 
-            self.consoleLogLevel = self.isLogLevel(maple.readMapleTag("CMD", "*LOG_SETTINGS"))
+            try:
+
+                self.consoleLogLevel = self.isLogLevel(maple.readMapleTag("CMD", "*LOG_SETTINGS"))
+
+            except:
+
+                pass
 
         if self.consoleLogLevel == -1:
 
@@ -863,7 +886,13 @@ class Logger:
 
         if self.fileLogLevel == -1 and maple is not None:
 
-            self.fileLogLevel = self.isLogLevel(maple.readMapleTag("FLE", "*LOG_SETTINGS"))
+            try:
+
+                self.fileLogLevel = self.isLogLevel(maple.readMapleTag("FLE", "*LOG_SETTINGS"))
+
+            except:
+
+                pass
 
         if self.fileLogLevel == -1:
 
