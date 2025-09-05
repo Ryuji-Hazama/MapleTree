@@ -17,7 +17,7 @@ class MapleException(Exception):
 
 class MapleFileNotFoundException(MapleException):
 
-    def __init__(self, mapleFile: str = "", message: str = "Mapel file not found"):
+    def __init__(self, mapleFile: str = "", message: str = "Maple file not found"):
 
         self.message = f"{message}: {mapleFile}"
         super().__init__(self.message)
@@ -282,7 +282,7 @@ class MapleTree:
     ####################################
     # Header not found exception handler
 
-    def __headerNotFoundExceptionHnadler(self, headInd: int, *headers: str) -> None:
+    def __headerNotFoundExceptionHandler(self, headInd: int, *headers: str) -> None:
 
         if headInd < 1:
 
@@ -460,7 +460,9 @@ class MapleTree:
 
     def readMapleTag(self, tag: str, *headers: str) -> str:
 
-        '''Read a Maple file tag line value in headers'''
+        '''
+        Read a Maple file tag line value in headers
+        '''
 
         headInd = self.mapleIndex
         eInd = self.eofIndex
@@ -471,7 +473,7 @@ class MapleTree:
 
         if not isFound:
 
-            self.__headerNotFoundExceptionHnadler(headInd, headers)
+            self.__headerNotFoundExceptionHandler(headInd, headers)
 
         # Find tag
 
@@ -480,9 +482,9 @@ class MapleTree:
             ind = self._findTagLine(tag, headInd, eInd)
             return self.__getValue(self.fileStream[ind])
 
-        except MapleTagNotFoundException as tnfe:
+        except MapleTagNotFoundException:
 
-            raise MapleTagNotFoundException(self.fileName, tag, headers[len(headers) - 1]) from tnfe
+            return None
         
         except Exception as e:
 
@@ -574,7 +576,7 @@ class MapleTree:
 
             if not gotHeader:
 
-                self.__headerNotFoundExceptionHnadler(headInd, headers)
+                self.__headerNotFoundExceptionHandler(headInd, headers)
 
             tagInd = self._findTagLine(delTag, headInd, eInd)
             self.fileStream.pop(tagInd)
@@ -616,7 +618,7 @@ class MapleTree:
 
             if not gotHeader:
 
-                self.__headerNotFoundExceptionHnadler(headInd, headers)
+                self.__headerNotFoundExceptionHandler(headInd, headers)
 
             # Get tag and values
 
@@ -663,7 +665,7 @@ class MapleTree:
 
             if not gotHeader:
 
-                self.__headerNotFoundExceptionHnadler(headInd, headers)
+                self.__headerNotFoundExceptionHandler(headInd, headers)
 
             # Get tag list
 
@@ -702,7 +704,7 @@ class MapleTree:
 
             if not gotHeader:
 
-                self.__headerNotFoundExceptionHnadler(headInd, Headers)
+                self.__headerNotFoundExceptionHandler(headInd, Headers)
 
             headInd = self.fileStream.index(f"{self.TAB_FORMAT * len(Headers)}H {delHead}\n", headInd, eInd)
             eInd = self.__ToE(headInd)
@@ -747,7 +749,7 @@ class MapleTree:
 
             if not gotHeader:
 
-                self.__headerNotFoundExceptionHnadler(headInd, headers)
+                self.__headerNotFoundExceptionHandler(headInd, headers)
 
             while headInd < eInd:
 
@@ -814,7 +816,8 @@ class Logger:
                         "    CMD INFO\n"
                         "    FLE INFO\n"
                         "    MAX 3\n"
-                        "E\nEOF\n")
+                        "    CMT TRACE, DEBUG, INFO, WARN, ERROR, FATAL\n"
+                        "E\nEOF")
                 f.close()
                 
             maple = MapleTree(configFile)
@@ -866,13 +869,11 @@ class Logger:
 
         if self.consoleLogLevel == -1 and maple is not None:
 
-            try:
+            strLogLevel = maple.readMapleTag("CMD", "*LOG_SETTINGS")
 
-                self.consoleLogLevel = self.isLogLevel(maple.readMapleTag("CMD", "*LOG_SETTINGS"))
+            if strLogLevel is not None:
 
-            except:
-
-                pass
+                self.consoleLogLevel = self.isLogLevel(strLogLevel)
 
         if self.consoleLogLevel == -1:
 
@@ -886,13 +887,11 @@ class Logger:
 
         if self.fileLogLevel == -1 and maple is not None:
 
-            try:
+            strLogLevel = maple.readMapleTag("FLE", "*LOG_SETTINGS")
 
-                self.fileLogLevel = self.isLogLevel(maple.readMapleTag("FLE", "*LOG_SETTINGS"))
+            if strLogLevel is not None:
 
-            except:
-
-                pass
+                self.fileLogLevel = self.isLogLevel(strLogLevel)
 
         if self.fileLogLevel == -1:
 
