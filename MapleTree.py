@@ -1,5 +1,6 @@
 import datetime
 from enum import IntEnum
+from cryptography.fernet import Fernet
 import inspect
 from os import path, remove, getpid
 import os
@@ -21,6 +22,21 @@ class MapleFileNotFoundException(MapleException):
 
         self.message = f"{message}: {mapleFile}"
         super().__init__(self.message)
+
+class KeyEmptyException(MapleException):
+
+    def __init__(self, mapleFile: str = "", message: str | None = None):
+
+        if message is None:
+
+            self.message = "File encryption toggle was set as \"True\", but the encryption key was not set.\n" \
+                           "Please set key(bytes) value or encryption toggle to \"False\"."
+            
+        else:
+
+            self.message = message
+
+        super().__init__(mapleFile, self.message)
 
 class MapleFileLockedException(MapleException):
 
@@ -104,18 +120,71 @@ class MapleFileEmptyException(InvalidMapleFileFormatException):
 
 class MapleTree:
 
-    def __init__(self, fileName: str, tabInd: int = 4):
+    def __init__(self, fileName: str, tabInd: int = 4, encrypt: bool = False, key: bytes | None = None, createBaseFile: bool = False):
+
+        """
+        key must be base_64 bytes.
+        """
 
         self.TAB_FORMAT = " " * tabInd
+        self.ENCRYPT = encrypt
+        self.KEY = key
         self.fileName = fileName
 
+        if encrypt and key is None:
+
+            raise KeyEmptyException(fileName)
+
         f = None
-        
+
+        if createBaseFile and not path.isfile(fileName):
+
+            # Create a base Maple file
+
+            try:
+
+                mapleBaseString = "MAPLE\nEOF"
+
+                if encrypt:
+
+                    # Encrypt data
+
+                    mapleBaseString = Fernet(key).encrypt(mapleBaseString.encode()).decode()
+
+                f = open(fileName, "w")
+                f.write(mapleBaseString)
+                f.close()
+
+            except Exception as e:
+
+                raise MapleException(e) from e
+            
+            finally:
+
+                if f is not None:
+                    f.close()
+
         try:
 
             f = open(fileName, "r")
-            self.fileStream = f.readlines()
-            f.close()
+
+            if encrypt:
+
+                # Decode encryption
+                
+                fileData = f.read()
+                fileData = Fernet(key).decrypt(fileData.encode()).decode()
+                self.fileStream = fileData.split("\n")
+
+                # Add \r at the end of each line
+
+                for i, fileLine in enumerate(self.fileStream):
+
+                    self.fileStream[i] = f"{fileLine}\n"
+
+            else:
+                    
+                self.fileStream = f.readlines()
 
             # If the file is only one line or empty
 
@@ -167,16 +236,41 @@ class MapleTree:
 
     #
     ##############################
+    # Encrypt data
+
+    def __encryptData(self) -> str:
+
+        """
+        Return encrypted base_64 string
+        """
+
+        fileData = "".join(self.fileStream).encode()
+        fileData = Fernet(self.KEY).encrypt(fileData).decode()
+
+        return fileData
+
+    #
+    ##############################
     # Save to file
 
     def _saveToFile(self):
 
         f = None
 
+        # Create file data
+
         try:
 
+            if self.ENCRYPT:
+
+                fileData = self.__encryptData()
+
+            else:
+
+                fileData = "".join(self.fileStream)
+
             f = open(self.fileName, "w")
-            f.writelines(self.fileStream)
+            f.writelines(fileData)
             f.close()
 
         except Exception as e:
