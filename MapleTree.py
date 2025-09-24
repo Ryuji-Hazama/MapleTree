@@ -873,28 +873,13 @@ class Logger:
         Set a negative value to maxLogSize for an infinite log file size.
         """
 
-        if workingDirectory is not None:
-
-            self.CWD = workingDirectory
-
-        else:
-
-            self.CWD = os.getcwd()
-        
-        self.logfile = path.join(self.CWD, "logs", f"log_{datetime.datetime.now():%Y%m%d}.log")
         self.intMaxValue = 4294967295
         self.consoleLogLevel = -1
         self.fileLogLevel = -1
         self.func = func
+        self.CWD = os.getcwd()
         
         configFile = path.join(self.CWD, "config.mpl")
-
-        #
-        ############################
-        # Check log directory
-
-        if not path.isdir(path.join(self.CWD, "logs")):
-            os.makedirs(path.join(self.CWD, "logs"))
 
         #
         ############################
@@ -910,6 +895,7 @@ class Logger:
                         "    CMD INFO\n"
                         "    FLE INFO\n"
                         "    MAX 3\n"
+                        "    OUT "
                         "    CMT TRACE, DEBUG, INFO, WARN, ERROR, FATAL\n"
                         "E\nEOF")
                 f.close()
@@ -919,6 +905,30 @@ class Logger:
         except:
 
             maple = None
+        #
+        ############################
+        # Check output directory
+        
+        if workingDirectory is not None:
+
+            self.CWD = workingDirectory
+
+        elif maple:
+
+            self.CWD = maple.readMapleTag("OUT", "*LOG_SETTINGS")
+
+        if self.CWD in {"", None}:
+
+            self.CWD = os.getcwd()
+        
+        self.logfile = path.join(self.CWD, "logs", f"log_{datetime.datetime.now():%Y%m%d}.log")
+
+        #
+        ############################
+        # Check log directory
+
+        if not path.isdir(path.join(self.CWD, "logs")):
+            os.makedirs(path.join(self.CWD, "logs"))
 
         #
         ############################
