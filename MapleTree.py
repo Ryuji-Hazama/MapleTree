@@ -895,7 +895,7 @@ class Logger:
                         "    CMD INFO\n"
                         "    FLE INFO\n"
                         "    MAX 3\n"
-                        "    OUT "
+                        "    OUT \n"
                         "    CMT TRACE, DEBUG, INFO, WARN, ERROR, FATAL\n"
                         "E\nEOF")
                 f.close()
