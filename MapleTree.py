@@ -919,16 +919,16 @@ class Logger:
 
         if self.CWD in {"", None}:
 
-            self.CWD = os.getcwd()
+            self.CWD = path.join(os.getcwd(), "logs")
         
-        self.logfile = path.join(self.CWD, "logs", f"log_{datetime.datetime.now():%Y%m%d}.log")
+        self.logfile = path.join(self.CWD, f"log_{datetime.datetime.now():%Y%m%d}.log")
 
         #
         ############################
         # Check log directory
 
-        if not path.isdir(path.join(self.CWD, "logs")):
-            os.makedirs(path.join(self.CWD, "logs"))
+        if not path.isdir(path.join(self.CWD)):
+            os.makedirs(path.join(self.CWD))
 
         #
         ############################
