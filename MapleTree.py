@@ -1042,6 +1042,40 @@ class Logger:
         *                *
         * - - - - - - -'''
 
+        # Console colors
+            
+        Black = "\033[30m"
+        Red = "\033[31m"
+        Green = "\033[32m"
+        Yellow = "\033[33m"
+        Blue = "\033[34m"
+        Magenta = "\033[35m"
+        LightBlue = "\033[36m"
+        White = "\033[37m"
+
+        bgBlack = "\033[40m"
+        bgRed = "\033[41m"
+        bgGreen = "\033[42m"
+        bgYellow = "\033[43m"
+        bgBlue = "\033[44m"
+        bgMagenta = "\033[45m"
+        bgLightBlue = "\033[46m"
+        bgWhite = "\033[47m"
+
+        bBlack = "\033[90m"
+        bRed = "\033[91m"
+        bGreen = "\033[92m"
+        bYellow = "\033[93m"
+        bBlue = "\033[94m"
+        bMagenta = "\033[95m"
+        bLightBlue = "\033[96m"
+        bWhite = "\033[97m"
+
+        Bold = "\033[1m"
+        Underline = "\033[4m"
+        Reversed = "\033[7m"
+        Reset = "\033[0m"
+
         f = open(self.logfile, "a")
 
         # Get caller informations
@@ -1051,10 +1085,44 @@ class Logger:
 
         try:
 
+            # Set console color
+
+            match loglevel:
+
+                case self.LogLevel.TRACE:
+
+                    col = bBlack
+
+                case self.LogLevel.DEBUG:
+
+                    col = Green
+
+                case self.LogLevel.INFO:
+
+                    col = bLightBlue
+
+                case self.LogLevel.WARN:
+
+                    col = bRed
+
+                case self.LogLevel.ERROR:
+
+                    col = Red
+
+                case self.LogLevel.FATAL:
+
+                    col = Bold + Red
+
+                case _:
+
+                    col = ""
+
+            # Maybe I want to add bold on Fatal
+
             # Export to console and log file
 
             if loglevel >= self.consoleLogLevel:
-                print(f"[{loglevel.name:5}][{self.func}] {callerFunc}({callerLine}) {message}")
+                print(f"[{col}{loglevel.name:5}{Reset}]{Green}[{self.func}]{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
         
             if loglevel >= self.fileLogLevel:
                 print(f"({getpid()}) {datetime.datetime.now():%Y-%m-%d %H:%M:%S} [{loglevel.name:5}][{self.func}] {callerFunc}({callerLine}) {message}", file=f)
@@ -1063,7 +1131,7 @@ class Logger:
 
             # If faled to export, print error info to console
 
-            print(f"[ERROR] {ex}")
+            print(f"{Red}[ERROR] {ex}{Reset}")
 
         finally:
             f.close()
@@ -1087,7 +1155,8 @@ class Logger:
                     os.rename(self.logfile, logCopyFile)
 
             except Exception as ex:
-                print(f"[ERROR] {ex}")
+
+                print(f"{Red}[ERROR] {ex}{Reset}")
 
     #
     ################################
