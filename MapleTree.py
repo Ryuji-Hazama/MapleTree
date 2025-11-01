@@ -4,8 +4,10 @@ from cryptography.fernet import Fernet
 import inspect
 from os import path, remove, getpid
 import os
+from pydantic import BaseModel
 from shutil import move
 import subprocess
+import sys
 import traceback
 import uuid
 
@@ -114,6 +116,43 @@ class MapleFileEmptyException(InvalidMapleFileFormatException):
 
     def __init__(self, mapleFile="", message="File is empty"):
         super().__init__(mapleFile, message)
+
+##################################
+# Console output colors BaseModel
+
+class ConsoleColors(BaseModel):
+
+    Black: str = "\033[30m"
+    Red: str = "\033[31m"
+    Green: str = "\033[32m"
+    Yellow: str = "\033[33m"
+    Blue: str = "\033[34m"
+    Magenta: str = "\033[35m"
+    LightBlue: str = "\033[36m"
+    White: str = "\033[37m"
+
+    bgBlack: str = "\033[40m"
+    bgRed: str = "\033[41m"
+    bgGreen: str = "\033[42m"
+    bgYellow: str = "\033[43m"
+    bgBlue: str = "\033[44m"
+    bgMagenta: str = "\033[45m"
+    bgLightBlue: str = "\033[46m"
+    bgWhite: str = "\033[47m"
+
+    bBlack: str = "\033[90m"
+    bRed: str = "\033[91m"
+    bGreen: str = "\033[92m"
+    bYellow: str = "\033[93m"
+    bBlue: str = "\033[94m"
+    bMagenta: str = "\033[95m"
+    bLightBlue: str = "\033[96m"
+    bWhite: str = "\033[97m"
+
+    Bold: str = "\033[1m"
+    Underline: str = "\033[4m"
+    Reversed: str = "\033[7m"
+    Reset: str = "\033[0m"
 
 #############################
 # Main class
@@ -878,12 +917,24 @@ class Logger:
         self.fileLogLevel = -1
         self.func = func
         self.CWD = os.getcwd()
+        self.consoleColors = ConsoleColors()
         
-        configFile = path.join(self.CWD, "config.mpl")
+        # Check the OS (Windows cannot change the console color)
+
+        systemId = sys.platform
+
+        if systemId.startswith("win"):
+
+            self.consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
+                                               bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
+                                               bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
+                                               Bold="", Underline="", Reversed="", Reset="")
 
         #
         ############################
         # Check config file
+        
+        configFile = path.join(self.CWD, "config.mpl")
 
         try:
 
@@ -895,7 +946,7 @@ class Logger:
                         "    CMD INFO\n"
                         "    FLE INFO\n"
                         "    MAX 3\n"
-                        "    OUT \n"
+                        "    OUT logs\n"
                         "    CMT TRACE, DEBUG, INFO, WARN, ERROR, FATAL\n"
                         "E\nEOF")
                 f.close()
@@ -920,7 +971,7 @@ class Logger:
         if self.CWD in {"", None}:
 
             self.CWD = path.join(os.getcwd(), "logs")
-        
+
         self.logfile = path.join(self.CWD, f"log_{datetime.datetime.now():%Y%m%d}.log")
 
         #
@@ -1043,38 +1094,14 @@ class Logger:
         * - - - - - - -'''
 
         # Console colors
-            
-        Black = "\033[30m"
-        Red = "\033[31m"
-        Green = "\033[32m"
-        Yellow = "\033[33m"
-        Blue = "\033[34m"
-        Magenta = "\033[35m"
-        LightBlue = "\033[36m"
-        White = "\033[37m"
 
-        bgBlack = "\033[40m"
-        bgRed = "\033[41m"
-        bgGreen = "\033[42m"
-        bgYellow = "\033[43m"
-        bgBlue = "\033[44m"
-        bgMagenta = "\033[45m"
-        bgLightBlue = "\033[46m"
-        bgWhite = "\033[47m"
-
-        bBlack = "\033[90m"
-        bRed = "\033[91m"
-        bGreen = "\033[92m"
-        bYellow = "\033[93m"
-        bBlue = "\033[94m"
-        bMagenta = "\033[95m"
-        bLightBlue = "\033[96m"
-        bWhite = "\033[97m"
-
-        Bold = "\033[1m"
-        Underline = "\033[4m"
-        Reversed = "\033[7m"
-        Reset = "\033[0m"
+        bBlack = self.consoleColors.bBlack
+        Red = self.consoleColors.Red
+        bRed = self.consoleColors.bRed
+        Green = self.consoleColors.Green
+        bLightBlue = self.consoleColors.bLightBlue
+        Bold = self.consoleColors.Bold
+        Reset = self.consoleColors.Reset
 
         f = open(self.logfile, "a")
 
@@ -1162,16 +1189,24 @@ class Logger:
     ################################
     # Error messages
 
-    def ShowError(self, ex: Exception, message: str | None = None):
+    def ShowError(self, ex: Exception, message: str | None = None, fatal: bool = False):
 
         '''Show and log error'''
 
+        if fatal:
+
+            logLevel = self.LogLevel.FATAL
+
+        else:
+
+            logLevel = self.LogLevel.ERROR
+
         if message is not None:
 
-            self.logWriter(self.LogLevel.ERROR, message)
+            self.logWriter(logLevel, message)
 
-        self.logWriter(self.LogLevel.ERROR, ex)
-        self.logWriter(self.LogLevel.ERROR, traceback.format_exc())
+        self.logWriter(logLevel, ex)
+        self.logWriter(logLevel, traceback.format_exc())
 
 #
 ############################
