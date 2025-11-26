@@ -122,6 +122,8 @@ class MapleFileEmptyException(InvalidMapleFileFormatException):
 
 class ConsoleColors(BaseModel):
 
+    # Standard colors
+
     Black: str = "\033[30m"
     Red: str = "\033[31m"
     Green: str = "\033[32m"
@@ -130,6 +132,8 @@ class ConsoleColors(BaseModel):
     Magenta: str = "\033[35m"
     LightBlue: str = "\033[36m"
     White: str = "\033[37m"
+
+    # Background colors
 
     bgBlack: str = "\033[40m"
     bgRed: str = "\033[41m"
@@ -140,6 +144,8 @@ class ConsoleColors(BaseModel):
     bgLightBlue: str = "\033[46m"
     bgWhite: str = "\033[47m"
 
+    # Bright colors
+
     bBlack: str = "\033[90m"
     bRed: str = "\033[91m"
     bGreen: str = "\033[92m"
@@ -148,6 +154,8 @@ class ConsoleColors(BaseModel):
     bMagenta: str = "\033[95m"
     bLightBlue: str = "\033[96m"
     bWhite: str = "\033[97m"
+
+    # Other formats
 
     Bold: str = "\033[1m"
     Underline: str = "\033[4m"
@@ -1143,8 +1151,6 @@ class Logger:
                 case _:
 
                     col = ""
-
-            # Maybe I want to add bold on Fatal
 
             # Export to console and log file
 
