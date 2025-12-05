@@ -980,6 +980,10 @@ class Logger:
 
             self.CWD = path.join(os.getcwd(), "logs")
 
+        elif not path.isabs(self.CWD):
+
+            self.CWD = path.join(os.getcwd(), self.CWD)
+
         self.logfile = path.join(self.CWD, f"log_{datetime.datetime.now():%Y%m%d}.log")
 
         #
