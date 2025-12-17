@@ -1162,7 +1162,7 @@ class Logger:
                 print(f"[{col}{loglevel.name:5}{Reset}]{Green}[{self.func}]{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
         
             if loglevel >= self.fileLogLevel:
-                print(f"({getpid()}) {datetime.datetime.now():%Y-%m-%d %H:%M:%S} [{loglevel.name:5}][{self.func}] {callerFunc}({callerLine}) {message}", file=f)
+                print(f"({getpid()}) {f"{datetime.datetime.now():%Y-%m-%d %H:%M:%S.%f}"[:-3]} [{loglevel.name:5}][{self.func}] {callerFunc}({callerLine}) {message}", file=f)
 
         except Exception as ex:
 
