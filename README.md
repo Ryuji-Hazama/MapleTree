@@ -16,10 +16,7 @@
 import MapleTree
 
 Logger = MapleTree.Logger("FunctionName")
-logger = Logger.logWriter
-logLevel = Logger.LogLevel
-
-logger(logLevel.INFO, "Hello there!")
+logger.Info("Hello there!")
 ```
 
 This outputs:
@@ -31,7 +28,7 @@ This outputs:
 File output will be:  `log_yyyyMMdd.log`
 
 ```log
-(PsNo) yyyy-MM-dd HH:mm:ss [INFO ][FunctionName] <module>(7) Hello there!
+(PsNo) yyyy-MM-dd HH:mm:ss.fff [INFO ][FunctionName] <module>(4) Hello there!
 ```
 
 #### Log Level
@@ -50,7 +47,24 @@ File output will be:  `log_yyyyMMdd.log`
 Function:
 
 ```python
-
+MapleTree.Logger.ShowError(ex: Exception, message: str | None = None, fatal: bool = False)
 ```
 
+If `fatal=True`, it outputs log as a `FATAL` log level.
+
 ### Settings
+
+Working on...
+
+## Install MapleTree :inbox_tray:
+
+1. Download `./dist/MapleTree-<version>-py3-none-any.whl`
+2. Run `python[3] -m pip install /path/to/downloaded/MapleTree-<veision>-py3-none-any.whl [--break-system-packages]`
+
+## If You Build Package by Yourself
+
+Run `python[3] -m build`  
+
+or
+
+Run `python[3] setup.py sdist bdist_wheel`
