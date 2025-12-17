@@ -1,0 +1,7 @@
+README.md
+setup.py
+MapleTree.egg-info/PKG-INFO
+MapleTree.egg-info/SOURCES.txt
+MapleTree.egg-info/dependency_links.txt
+MapleTree.egg-info/requires.txt
+MapleTree.egg-info/top_level.txt
