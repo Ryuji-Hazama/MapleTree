@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "MapleTree"
-version = "2.0.0"
-description = "MapleTree: A Python library for read and write operations on MapleTree data structures. Logger: A logging utility for MapleTree operations."
+name = "MapleX"
+version = "2.1.0"
+description = "MapleX: A Python library for Maple file format operations, with logging and console color utilities"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -21,5 +21,6 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 requires-python = ">=3.11"
+
 [tool.setuptools.packages.find]
 where = ["src"]

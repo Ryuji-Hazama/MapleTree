@@ -1,6 +1,12 @@
-# :maple_leaf: Maple Tree :deciduous_tree:
+# :maple_leaf: MapleX :deciduous_tree:
 
-&nbsp;&nbsp;&nbsp;&nbsp;MapleTree is a tool set for Maple file, and a logger for the python applications.
+&nbsp;&nbsp;&nbsp;&nbsp;MapleX is a tool set for Maple file format operations, with logging and console color utilities for Python applications.
+
+```bash
+pip install maplex
+```
+
+to install package.
 
 ## Maple File
 
@@ -111,6 +117,25 @@ E
 EOF
 ```
 
+### Comments
+
+- `CMT` tag line will be ignored as a comment line.
+- A line that starts with `#` is also treated as a comment line.
+
+E.g.:
+
+```text
+MAPLE
+
+H DATA
+    CMT This is a comment line.
+    #TAG This is also a comment line.
+    NOTACOMMENT # This cannot be a comment.
+E
+
+EOF
+```
+
 ## MapleTree Class
 
 ### \_\_init\_\_
@@ -136,7 +161,7 @@ class MapleTree(
 E.g.:
 
 ```python
-from MapleTree import MapleTree
+from maplex import MapleTree
 
 mapleFile = MapleTree("FileName.mpl")
 ```
@@ -257,7 +282,7 @@ EOF
 ```
 
 ```python
-from MapleTree import MapleTree
+from maplex import MapleTree
 
 mapleFile = MapleTree("Sample.mpl")
 mapleData = mapleFile.readMapleTag("TAG1", "FOO", "BAR")
@@ -335,7 +360,7 @@ def getHeaders(
 ### Usage
 
 ```python
-from MapleTree import Logger
+from maplex import Logger
 
 logger = Logger("FunctionName")
 logger.Info("Hello there!")
@@ -386,14 +411,20 @@ Working on...
 
 ## Console Colors
 
-## Install MapleTree :inbox_tray:
+## Install maplex :inbox_tray:
 
-### Windows/Linux
+### From PyPI
 
-1. Download `./dist/MapleTree-<version>-py3-none-any.whl`
-2. Run `python[3] -m pip install /path/to/downloaded/MapleTree-<veision>-py3-none-any.whl [--break-system-packages]`
+```bash
+pip install maplex
+```
 
-## If You Build Package by Yourself
+### Manual Installation
+
+1. Download `./dist/maplex-<version>-py3-none-any.whl`
+2. Run `python[3] -m pip install /path/to/downloaded/maplex-<version>-py3-none-any.whl [--break-system-packages]`
+
+### Build Package by Yourself
 
 &nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] -m build`  
 

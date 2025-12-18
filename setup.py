@@ -1,11 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name = "MapleTree",
-    version = "2.0.0",
+    name = "MapleX",
+    version = "2.1.0",
     author = "Ryuji Hazama",
-    description="""MapleTree: A Python library for read and write operations on MapleTree data structures.
-    Logger: A logging utility""",
+    description="""MapleX: A Python library for Maple file format operations, with logging and console color utilities""",
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     packages = find_packages(),
