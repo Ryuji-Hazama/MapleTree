@@ -2,27 +2,349 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;MapleTree is a tool set for Maple file, and a logger for the python applications.
 
-## MapleTree
+## Maple File
 
 &nbsp;&nbsp;&nbsp;&nbsp;Maple is a file system that I created when I was a child. It's like a combination of the INI file and the Jason file. I created this easy to read and write for both humans and machines.
 
-## Logger
+### Basic Format
+
+```text
+All datas before MAPLE\n will be ignored
+
+MAPLE
+CMT Maple data must start with "MAPLE"
+
+*MAPLE_TIME
+yyyy/MM/dd HH:mm:ss.fffffff
+CMT Encoded time or optional time in method parameter
+
+H *STATUS
+    CMT File status
+    ADT yyyy/MM/dd HH:mm:ss.fffffff
+    RDT yyyy/MM/dd HH:mm:ss.fffffff
+    CMT ADT is the most recent edited time
+    CMT RDT is the second most recent edited time (before ADT)
+    CNT {int}
+    CMT CNT is the data count (Optional)
+E
+H *Header
+    CMT Headers include '*' are system header
+E
+H Data Headers
+    H Sub Data Header
+        CMT Comments
+        Tags Propaties
+        CMT Propaties cannot include 'CRLF'
+        Tags2 Propaties
+        CMT Cannot use same tags in a Header except CMT and NTE in H NOTES
+        H Sub Data Header
+            Tags Propaties
+            CMT Can use same tag in sub header used in parents header
+        E
+    E
+    H *NOTES
+        CMT Notes header
+        NTE {strimg}
+        NTE ...
+        CMT Notes main strings for multi line data
+    E
+E
+H Data Headers2
+E
+CMT "\nEOF\n" must be needed for all data
+EOF
+
+All datas after "\nEOF\n" will be ignored
+```
+
+### Data boundary
+
+- Maple data will start with a line `MAPLE\n` and end with `\nEOF\n`.
+- Data outside those lines will be ignored.
+
+E.g.:
+
+```text
+MAPLE
+
+<MAPLE DATA>
+
+EOF
+```
+
+:warning: ***Data outside the Maple data could be lost in the future update***.
+
+### Blocks
+
+- Block starts with `H <Header Name>` and end with `E`.
+- Blocks can be nested.
+
+E.g.:
+
+```text
+MAPLE
+
+H APP DATA
+    H PATH INFO
+        ...<DATA LINES>
+    E
+    ...<DATA LINES>
+E
+
+EOF
+```
+
+### Data Lines
+
+- Each data line has a 'tag' in front of the data.
+- Before the very first white spece will be treated as a 'tag' and all the data after the white spece will be treated as the data.
+
+E.g.: Store `ANY DATA` with a tag `BAR` inside the `FOO` block
+
+```text
+MAPLE
+
+H FOO
+    BAR ANY DATA
+E
+
+EOF
+```
+
+## MapleTree Class
+
+### \_\_init\_\_
+
+```python
+class MapleTree(
+    fileName: str,
+    tabInd: int = 4,
+    encrypt: bool = False,
+    key: bytes | None = None,
+    createBaseFile: bool = False
+)
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**fileName**|\*|Maple file name|
+|**tabInd**||White space count for indents|
+|**encrypt**||File encryption|
+|**key**||Encryption key|
+|**createBaseFile**||Create empty base file|
+
+E.g.:
+
+```python
+from MapleTree import MapleTree
+
+mapleFile = MapleTree("FileName.mpl")
+```
+
+#### Open existing Maple file
+
+&nbsp;&nbsp;&nbsp;&nbsp;`__init__` will open the Maple file and load data to the baffer.
+
+```python
+mapleFile = MapleTree("FileName.mpl")
+```
+
+#### Change indent size
+
+```python
+mapleFile = MapleTree("FileName.mpl", tabInd=4)
+mapleFile._saveToFile()
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This makes the maple file look like
+
+```text
+MAPLE
+
+H FOO
+    H BAR
+        <MAPLE DATA LINES>
+    E
+    <MAPLE DATA LINES>
+E
+
+EOF
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;If you change the `tabInd` value
+
+```python
+mapleFile = MapleTree("FileName.mpl", tabInd=2)
+mapleFile._saveToFile()
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This makes the maple file look like
+
+```text
+MAPLE
+
+H FOO
+  H BAR
+    <MAPLE DATA LINES>
+  E
+  <MAPLE DATA LINES>
+E
+
+EOF
+```
+
+#### Create a Base File
+
+&nbsp;&nbsp;&nbsp;&nbsp;You can create an empty base file when you initialize the class instance.
+
+```python
+mapleFile = MapleTree("NewFile.mpl", createBaseFile=True)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This creates an empty Maple file if the file `NewFile.mpl` does not exist.
+
+```text
+MAPLE
+EOF
+```
+
+#### File Data Encryption
+
+&nbsp;&nbsp;&nbsp;&nbsp;If `encrypt=True`, the instance decrypt data when read it, and encrypt data when save it.  
+&nbsp;&nbsp;&nbsp;&nbsp;You need to specify the byte key when you use encryption and the file must be encrypted before read it.
+
+```python
+mapleFile = MapleTree("FileName.mpl", encrypt=True, key=key)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;You can create an encrypted base file with `createBaseFile=True` if the file does not exist.
+
+```python
+mapleFile = MapleTree("NewFile.mpl", encrypt=True, key=key, createBaseFile=True)
+```
+
+### readMapleTag
+
+```python
+def readMapleTag(
+    tag: str,
+    *headers: str
+) -> str
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**tag**|\*|Tag to find|
+|**headers**||Headers contains the tag|
+
+&nbsp;&nbsp;&nbsp;&nbsp;`readMapleTag` returns data string tagged with the `tag` in `headers` and return `None` if the tag not found.
+
+E.g.:
+
+Sample Data (`Sample.mpl`)
+
+```text
+MAPLE
+
+H FOO
+    H BAR
+        TAG1 DATA 1
+        TAG2 DATA 2
+    E
+E
+
+EOF
+```
+
+```python
+from MapleTree import MapleTree
+
+mapleFile = MapleTree("Sample.mpl")
+mapleData = mapleFile.readMapleTag("TAG1", "FOO", "BAR")
+
+print(mapleData)
+# Outputs "DATA 1"
+```
+
+### saveTagLine
+
+```python
+def saveTagLine(
+    tag: str,
+    valueStr: str,
+    willSave: bool,
+    *headers: str
+) -> None
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**tag**|\*|Target tag|
+|**valueStr**|\*|Data value (string)|
+|**willSave**|\*|Save to file flag|
+|**headers**||Target headers|
+
+### deleteTag
+
+```python
+def deleteTag(
+    delTag: str,
+    willSave: bool = False,
+    *headers: str
+) -> bool
+```
+
+### getTagValueDict
+
+```python
+getTagValueDic(
+    *headers: str
+) -> dict[str, str]
+```
+
+### getTags
+
+```python
+def getTags(
+    *headers: str
+) -> list[str]
+```
+
+### deleteHeader
+
+```python
+def deleteHeader(
+    delHead: str,
+    willSave: bool = False,
+    *Headers: str
+) -> bool
+```
+
+### getHeaders
+
+```python
+def getHeaders(
+    *headers: str
+) -> list
+```
+
+## Logger Class
 
 &nbsp;&nbsp;&nbsp;&nbsp;Logger is a logging object for Python applications. It outputs application logs to log files and to standard output.
 
 ### Usage
 
 ```python
-import MapleTree
+from MapleTree import Logger
 
-Logger = MapleTree.Logger("FunctionName")
+logger = Logger("FunctionName")
 logger.Info("Hello there!")
 ```
 
 This outputs:
 
 ```console
-[INFO ][FunctionName] <module>(7) Hello there!
+[INFO ][FunctionName] <module>(4) Hello there!
 ```
 
 File output will be:  `log_yyyyMMdd.log`
@@ -47,24 +369,34 @@ File output will be:  `log_yyyyMMdd.log`
 Function:
 
 ```python
-MapleTree.Logger.ShowError(ex: Exception, message: str | None = None, fatal: bool = False)
+Logger.ShowError(
+    ex: Exception,
+    message: str | None = None,
+    fatal: bool = False
+)
 ```
 
-If `fatal=True`, it outputs log as a `FATAL` log level.
+- If `fatal=True`, it outputs log as a `FATAL` log level.
 
 ### Settings
 
 Working on...
 
+## Exceptions
+
+## Console Colors
+
 ## Install MapleTree :inbox_tray:
+
+### Windows/Linux
 
 1. Download `./dist/MapleTree-<version>-py3-none-any.whl`
 2. Run `python[3] -m pip install /path/to/downloaded/MapleTree-<veision>-py3-none-any.whl [--break-system-packages]`
 
 ## If You Build Package by Yourself
 
-Run `python[3] -m build`  
+&nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] -m build`  
 
 or
 
-Run `python[3] setup.py sdist bdist_wheel`
+&nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] setup.py sdist bdist_wheel`
