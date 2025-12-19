@@ -789,6 +789,14 @@ ToDo list:
     - findHeader
     - ToE
     - mapleFormatter
+- Change willSave parameter to **kwargs
+    - saveTagLine
+    - deleteTag
+    - deleteHeader
+    [kwargs.get('willSave', False)]
+- Add unexpected keyword arguments exception
+    - MapleSyntaxException.MapleTypeException
+    - "{function}() got an unexpected keyword argument '{kwarg}'"
 
 """
 """ * * * * * * * * * * * * * """

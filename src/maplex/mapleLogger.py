@@ -189,7 +189,7 @@ class Logger:
     #################################
     # Logger
 
-    def logWriter(self, loglevel: LogLevel, message: any):
+    def logWriter(self, loglevel: LogLevel, message: any, callerDepth: int = 1) -> None:
 
         """
         Output log to log file and console.
@@ -215,8 +215,9 @@ class Logger:
 
         # Get caller informations
 
-        callerFunc = inspect.stack()[1].function
-        callerLine = inspect.stack()[1].lineno
+        callerFrame = inspect.stack()[callerDepth]
+        callerFunc = callerFrame.function
+        callerLine = callerFrame.lineno
 
         try:
 
@@ -299,8 +300,7 @@ class Logger:
 
         '''Trace log'''
 
-        self.logWriter(self.LogLevel.TRACE, object)
-
+        self.logWriter(self.LogLevel.TRACE, object, callerDepth=2)
     #
     ################################
     # Debug
@@ -309,7 +309,7 @@ class Logger:
 
         '''Debug log'''
 
-        self.logWriter(self.LogLevel.DEBUG, object)
+        self.logWriter(self.LogLevel.DEBUG, object, callerDepth=2)
 
     #
     ################################
@@ -319,7 +319,7 @@ class Logger:
 
         '''Info log'''
 
-        self.logWriter(self.LogLevel.INFO, object)
+        self.logWriter(self.LogLevel.INFO, object, callerDepth=2)
 
     #
     ################################
@@ -329,7 +329,7 @@ class Logger:
 
         '''Warn log'''
 
-        self.logWriter(self.LogLevel.WARN, object)
+        self.logWriter(self.LogLevel.WARN, object, callerDepth=2)
 
     #
     ################################
@@ -339,7 +339,7 @@ class Logger:
 
         '''Error log'''
 
-        self.logWriter(self.LogLevel.ERROR, object)
+        self.logWriter(self.LogLevel.ERROR, object, callerDepth=2)
 
     #
     ################################
@@ -349,7 +349,7 @@ class Logger:
 
         '''Fatal log'''
 
-        self.logWriter(self.LogLevel.FATAL, object)
+        self.logWriter(self.LogLevel.FATAL, object, callerDepth=2)
 
     #
     ################################
@@ -369,7 +369,7 @@ class Logger:
 
         if message is not None:
 
-            self.logWriter(logLevel, message)
+            self.logWriter(logLevel, message, callerDepth=2)
 
-        self.logWriter(logLevel, ex)
-        self.logWriter(logLevel, traceback.format_exc())
+        self.logWriter(logLevel, ex, callerDepth=2)
+        self.logWriter(logLevel, traceback.format_exc(), callerDepth=2)
