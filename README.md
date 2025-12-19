@@ -2,11 +2,11 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;MapleX is a tool set for Maple file format operations, with logging and console color utilities for Python applications.
 
+&nbsp;&nbsp;&nbsp;&nbsp;***You can install the package from pip with following command.***
+
 ```bash
 pip install maplex
 ```
-
-to install package.
 
 ## Maple File
 
@@ -138,7 +138,7 @@ EOF
 
 ## MapleTree Class
 
-### \_\_init\_\_
+### \_\_init\_\_()
 
 ```python
 class MapleTree(
@@ -157,6 +157,8 @@ class MapleTree(
 |**encrypt**||File encryption|
 |**key**||Encryption key|
 |**createBaseFile**||Create empty base file|
+
+&nbsp;&nbsp;&nbsp;&nbsp;`__init__` initialize the class and load a maple file data to the buffer.
 
 E.g.:
 
@@ -248,7 +250,7 @@ mapleFile = MapleTree("FileName.mpl", encrypt=True, key=key)
 mapleFile = MapleTree("NewFile.mpl", encrypt=True, key=key, createBaseFile=True)
 ```
 
-### readMapleTag
+### readMapleTag()
 
 ```python
 def readMapleTag(
@@ -291,7 +293,7 @@ print(mapleData)
 # Outputs "DATA 1"
 ```
 
-### saveTagLine
+### saveTagLine()
 
 ```python
 def saveTagLine(
@@ -309,7 +311,100 @@ def saveTagLine(
 |**willSave**|\*|Save to file flag|
 |**headers**||Target headers|
 
-### deleteTag
+&nbsp;&nbsp;&nbsp;&nbsp;`saveTagLine` saves a value with a tag in a header block specified by the parameter.
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.txt", createBaseFile=True)
+mapleFile.saveTagLine("TAG", "VALUE", True, "FOO")
+
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code outputs a file contains:
+
+```text
+MAPLE
+H FOO
+    TAG VALUE
+E
+EOF
+```
+
+#### Update a Buffer Content
+
+&nbsp;&nbsp;&nbsp;&nbsp;If `willSave=False`, the buffer content will be updated, but no update on physical file content.
+
+E.g.:
+
+```python
+mapleFile.saveTagLine("TAG", "NEW VALUE", False, "FOO")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code changes the contents on buffer like:
+
+```text
+MAPLE
+H FOO
+    TAG NEW VALUE
+E
+EOF
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;But the change is **NOT** being saved in the file.
+
+```text
+MAPLE
+H FOO
+    TAG VALUE
+E
+EOF
+```
+
+#### Update and Save Changes
+
+&nbsp;&nbsp;&nbsp;&nbsp;If `willSave=True`, all the changes to the buffer will be saved.
+
+```python
+mapleFile.saveTagLine("BAR", "ANOTHER VALUE", True, "FOO")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code changes the contents in the file like:
+
+```text
+MAPLE
+H FOO
+    TAG NEW VALUE
+    BAR ANOTHER VALUE
+E
+EOF
+```
+
+#### Create New Block and Tag
+
+&nbsp;&nbsp;&nbsp;&nbsp;If the block and/or the header(s) specified with the parameters do not exist in the data, the function creates the new header block(s) and the tag and saves the value.
+
+```python
+mapleFile.saveTagLine("TAZ", "NEW HEADER AND TAG", False, "NEW_HEADER")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code will change the data like:
+
+```text
+MAPLE
+H FOO
+    TAG NEW VALUE
+    BAR ANOTHER VALUE
+E
+H NEW_HEADER
+    TAZ NEW HEADER AND TAG
+E
+EOF
+```
+
+### deleteTag()
 
 ```python
 def deleteTag(
@@ -319,7 +414,7 @@ def deleteTag(
 ) -> bool
 ```
 
-### getTagValueDict
+### getTagValueDict()
 
 ```python
 getTagValueDic(
@@ -327,7 +422,7 @@ getTagValueDic(
 ) -> dict[str, str]
 ```
 
-### getTags
+### getTags()
 
 ```python
 def getTags(
@@ -335,7 +430,7 @@ def getTags(
 ) -> list[str]
 ```
 
-### deleteHeader
+### deleteHeader()
 
 ```python
 def deleteHeader(
@@ -345,7 +440,7 @@ def deleteHeader(
 ) -> bool
 ```
 
-### getHeaders
+### getHeaders()
 
 ```python
 def getHeaders(

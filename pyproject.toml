@@ -7,7 +7,7 @@ name = "MapleX"
 version = "2.1.0"
 description = "MapleX: A Python library for Maple file format operations, with logging and console color utilities"
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "MIT", file = "LICENSE"}
 authors = [
     {name = "Ryuji Hazama"}
 ]
@@ -16,11 +16,19 @@ dependencies = [
     "pydantic>=2.12.5"
 ]
 classifiers = [
-    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.urls]
+PyPI = "https://pypi.org/project/MapleX/"
+GitHub = "https://github.com/Ryuji-Hazama"
+Repository = "https://github.com/Ryuji-Hazama/MapleTree"
+Issues = "https://github.com/Ryuji-Hazama/MapleTree/issues"
+YouTube = "https://www.youtube.com/@ryujihazama"
+Instagram = "https://www.instagram.com/ryujihazama/"
