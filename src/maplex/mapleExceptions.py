@@ -103,3 +103,24 @@ class MapleFileEmptyException(InvalidMapleFileFormatException):
 
     def __init__(self, mapleFile="", message="File is empty"):
         super().__init__(mapleFile, message)
+
+class MapleSyntaxException(MapleException):
+
+    def __init__(self, message: str = "Maple syntax error"):
+
+        self.message = message
+        super().__init__(self.message)
+
+class MapleTypeException(MapleSyntaxException):
+
+    def __init__(self, mapleFunction: str = "", unexpectedKeywordArg: str = "", message: str = ""):
+    
+        if message == "":
+
+            self.message = f"Unexpected keyword argument [{unexpectedKeywordArg}] in function [{mapleFunction}]"
+
+        else:
+
+            self.message = message
+
+        super().__init__(self.message)

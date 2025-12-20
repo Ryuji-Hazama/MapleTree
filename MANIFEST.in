@@ -1,2 +1,7 @@
 include LICENSE
 include README.md
+
+exclude .gitignore
+exclude mapleOutputTest.py
+exclude ColorText.py
+exclude test_*

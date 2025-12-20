@@ -2,7 +2,7 @@
 
 &nbsp;&nbsp;&nbsp;&nbsp;MapleX is a tool set for Maple file format operations, with logging and console color utilities for Python applications.
 
-&nbsp;&nbsp;&nbsp;&nbsp;***You can install the package from pip with following command.***
+&nbsp;&nbsp;&nbsp;&nbsp;***You can install the package from pip with the following command.***
 
 ```bash
 pip install maplex
@@ -10,54 +10,63 @@ pip install maplex
 
 ## Maple File
 
-&nbsp;&nbsp;&nbsp;&nbsp;Maple is a file system that I created when I was a child. It's like a combination of the INI file and the Jason file. I created this easy to read and write for both humans and machines.
+&nbsp;&nbsp;&nbsp;&nbsp;Maple is a file system that I created when I was a child. It's like a combination of the INI file and the Jason file. I made this format that is easy to read and write for both humans and machines.
 
 ### Basic Format
 
 ```text
-All datas before MAPLE\n will be ignored
+All data before MAPLE\n will be ignored
 
 MAPLE
-CMT Maple data must start with "MAPLE"
+# Maple data must start with "MAPLE"
 
 *MAPLE_TIME
 yyyy/MM/dd HH:mm:ss.fffffff
-CMT Encoded time or optional time in method parameter
+# Encoded time or optional time in the method parameter
 
 H *STATUS
-    CMT File status
+    # File status
     ADT yyyy/MM/dd HH:mm:ss.fffffff
     RDT yyyy/MM/dd HH:mm:ss.fffffff
-    CMT ADT is the most recent edited time
-    CMT RDT is the second most recent edited time (before ADT)
     CNT {int}
-    CMT CNT is the data count (Optional)
+    H #*
+        ADT is the most recent edited time
+        RDT is the second most recent edited time (before ADT)
+        CNT is the data count (Optional)
+    E *#
 E
 H *Header
-    CMT Headers include '*' are system header
+    # Headers include '*' are system headers
 E
 H Data Headers
     H Sub Data Header
         CMT Comments
-        Tags Propaties
-        CMT Propaties cannot include 'CRLF'
-        Tags2 Propaties
-        CMT Cannot use same tags in a Header except CMT and NTE in H NOTES
+        # This is also a comment
+        Tags Properties
+        # Propaties cannot include 'CRLF.'
+        Tags2 Properties
+        # You cannot use the same tags in a Header except CMT and NTE in H NOTES
         H Sub Data Header
             Tags Propaties
-            CMT Can use same tag in sub header used in parents header
+            # You can use the same tag in the child header,
+            # which is already used in the parent's header
         E
     E
     H *NOTES
-        CMT Notes header
+        # Note's header
         NTE {strimg}
         NTE ...
-        CMT Notes main strings for multi line data
+        # Note's main strings for the multi-line data
     E
+    H #*
+        This is a comment block.
+        Starts with "H #*"
+        and ends with "E *#"
+    E *#
 E
 H Data Headers2
 E
-CMT "\nEOF\n" must be needed for all data
+# "\nEOF\n" must be needed for all data
 EOF
 
 All datas after "\nEOF\n" will be ignored
@@ -82,7 +91,7 @@ EOF
 
 ### Blocks
 
-- Block starts with `H <Header Name>` and end with `E`.
+- Block starts with `H <Header Name>` and ends with `E`.
 - Blocks can be nested.
 
 E.g.:
@@ -103,7 +112,7 @@ EOF
 ### Data Lines
 
 - Each data line has a 'tag' in front of the data.
-- Before the very first white spece will be treated as a 'tag' and all the data after the white spece will be treated as the data.
+- The string before the very first white space will be treated as a 'tag', and all the data after the white space will be treated as the data.
 
 E.g.: Store `ANY DATA` with a tag `BAR` inside the `FOO` block
 
@@ -118,6 +127,10 @@ EOF
 ```
 
 ### Comments
+
+`v2.1.0 or newer`
+
+#### Comment Line
 
 - `CMT` tag line will be ignored as a comment line.
 - A line that starts with `#` is also treated as a comment line.
@@ -136,9 +149,27 @@ E
 EOF
 ```
 
+#### Comment Block
+
+- You can write multi-line comments using a comment block that starts with `H #*` and ends with `E *#`.
+
+E.g.:
+
+```text
+MAPLE
+
+H #*
+    THIS IS A COMMENT BLOCK
+    YOU CAN WRITE
+    MULTIPLE LINE COMMENTS
+E *#
+
+EOF
+```
+
 ## MapleTree Class
 
-### \_\_init\_\_()
+### `\_\_init\_\_()`
 
 ```python
 class MapleTree(
@@ -152,13 +183,13 @@ class MapleTree(
 
 |Property|Required|Value|
 |--------|--------|-----|
-|**fileName**|\*|Maple file name|
-|**tabInd**||White space count for indents|
-|**encrypt**||File encryption|
-|**key**||Encryption key|
-|**createBaseFile**||Create empty base file|
+|**`fileName`**|\*|Maple file name|
+|**`tabInd`**||White space count for indents|
+|**`encrypt`**||File encryption|
+|**`key`**||Encryption key|
+|**`createBaseFile`**||Create empty base file|
 
-&nbsp;&nbsp;&nbsp;&nbsp;`__init__` initialize the class and load a maple file data to the buffer.
+&nbsp;&nbsp;&nbsp;&nbsp;`__init__` initialize the class and load a Maple file data to the buffer.
 
 E.g.:
 
@@ -170,7 +201,7 @@ mapleFile = MapleTree("FileName.mpl")
 
 #### Open existing Maple file
 
-&nbsp;&nbsp;&nbsp;&nbsp;`__init__` will open the Maple file and load data to the baffer.
+&nbsp;&nbsp;&nbsp;&nbsp;`__init__` will open the Maple file and load data to the buffer.
 
 ```python
 mapleFile = MapleTree("FileName.mpl")
@@ -237,8 +268,8 @@ EOF
 
 #### File Data Encryption
 
-&nbsp;&nbsp;&nbsp;&nbsp;If `encrypt=True`, the instance decrypt data when read it, and encrypt data when save it.  
-&nbsp;&nbsp;&nbsp;&nbsp;You need to specify the byte key when you use encryption and the file must be encrypted before read it.
+&nbsp;&nbsp;&nbsp;&nbsp;If `encrypt=True`, the instance decrypts data when it is read, and encrypts data when it is saved.  
+&nbsp;&nbsp;&nbsp;&nbsp;You need to specify the byte key when you use encryption, and the file must be encrypted.
 
 ```python
 mapleFile = MapleTree("FileName.mpl", encrypt=True, key=key)
@@ -250,7 +281,7 @@ mapleFile = MapleTree("FileName.mpl", encrypt=True, key=key)
 mapleFile = MapleTree("NewFile.mpl", encrypt=True, key=key, createBaseFile=True)
 ```
 
-### readMapleTag()
+### `readMapleTag()`
 
 ```python
 def readMapleTag(
@@ -261,10 +292,10 @@ def readMapleTag(
 
 |Property|Required|Value|
 |--------|--------|-----|
-|**tag**|\*|Tag to find|
-|**headers**||Headers contains the tag|
+|**`tag`**|\*|Tag to find|
+|**`headers`**||Headers contains the tag|
 
-&nbsp;&nbsp;&nbsp;&nbsp;`readMapleTag` returns data string tagged with the `tag` in `headers` and return `None` if the tag not found.
+&nbsp;&nbsp;&nbsp;&nbsp;`readMapleTag` returns a data string tagged with the `tag` in `headers` and returns `None` if the tag was not found.
 
 E.g.:
 
@@ -293,7 +324,7 @@ print(mapleData)
 # Outputs "DATA 1"
 ```
 
-### saveTagLine()
+### `saveTagLine()`
 
 ```python
 def saveTagLine(
@@ -306,10 +337,10 @@ def saveTagLine(
 
 |Property|Required|Value|
 |--------|--------|-----|
-|**tag**|\*|Target tag|
-|**valueStr**|\*|Data value (string)|
-|**willSave**|\*|Save to file flag|
-|**headers**||Target headers|
+|**`tag`**|\*|Target tag|
+|**`valueStr`**|\*|Data value (string)|
+|**`willSave`**|\*|Save to file flag|
+|**`headers`**||Target headers|
 
 &nbsp;&nbsp;&nbsp;&nbsp;`saveTagLine` saves a value with a tag in a header block specified by the parameter.
 
@@ -404,7 +435,7 @@ E
 EOF
 ```
 
-### deleteTag()
+### `deleteTag()`
 
 ```python
 def deleteTag(
@@ -414,7 +445,7 @@ def deleteTag(
 ) -> bool
 ```
 
-### getTagValueDict()
+### `getTagValueDict()`
 
 ```python
 getTagValueDic(
@@ -422,7 +453,7 @@ getTagValueDic(
 ) -> dict[str, str]
 ```
 
-### getTags()
+### `getTags()`
 
 ```python
 def getTags(
@@ -430,7 +461,7 @@ def getTags(
 ) -> list[str]
 ```
 
-### deleteHeader()
+### `deleteHeader()`
 
 ```python
 def deleteHeader(
@@ -440,7 +471,7 @@ def deleteHeader(
 ) -> bool
 ```
 
-### getHeaders()
+### `getHeaders()`
 
 ```python
 def getHeaders(
@@ -475,12 +506,12 @@ File output will be:  `log_yyyyMMdd.log`
 
 #### Log Level
 
-- TRACE
-- DEBUG
-- INFO
-- WARN
-- ERROR
-- FATAL
+- `TRACE`
+- `DEBUG`
+- `INFO`
+- `WARN`
+- `ERROR`
+- `FATAL`
 
 #### ShowError function
 
@@ -511,7 +542,7 @@ Working on...
 ### From PyPI
 
 ```bash
-pip install maplex
+python[3] -m pip install maplex [--break-system-packages]
 ```
 
 ### Manual Installation
@@ -519,7 +550,7 @@ pip install maplex
 1. Download `./dist/maplex-<version>-py3-none-any.whl`
 2. Run `python[3] -m pip install /path/to/downloaded/maplex-<version>-py3-none-any.whl [--break-system-packages]`
 
-### Build Package by Yourself
+### Build the Package by Yourself
 
 &nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] -m build`  
 

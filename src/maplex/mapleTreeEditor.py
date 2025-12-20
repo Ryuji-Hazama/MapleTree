@@ -1,5 +1,6 @@
 import os.path as path
 from cryptography.fernet import Fernet
+from more_itertools import strip
 from . import mapleExceptions as mExc
 
 class MapleTree:
@@ -79,6 +80,7 @@ class MapleTree:
             # Search data region
 
             self.mapleIndex = self.fileStream.index("MAPLE\n")
+            self.eofIndex = len(self.fileStream) - 1
             self.eofIndex = self._findEof(self.mapleIndex)
 
             # Check data format
@@ -96,6 +98,7 @@ class MapleTree:
         except ValueError or mExc.InvalidMapleFileFormatException as ve:
 
             raise mExc.InvalidMapleFileFormatException(fileName) from ve
+
         except Exception as ex:
 
             raise mExc.MapleException(ex) from ex
@@ -276,13 +279,26 @@ class MapleTree:
 
         """"Find EOF line index"""
 
-        listLen = len(self.fileStream)
+        listLen = len(self.fileStream) - 1
 
         while startInd < listLen:
 
             startInd += 1
+            lineTag = self.__getTag(self.fileStream[startInd])
+
+            if lineTag == "H":
+
+                # Check for comment block
+
+                lineValue = self.__getValue(self.fileStream[startInd])
+
+                if lineValue[:2] == "#*":
+
+                    # Skip comment block
+
+                    startInd = self.__ToCommentEnd(startInd)
             
-            if self.__getTag(self.fileStream[startInd]) == "EOF":
+            elif lineTag == "EOF":
 
                 return startInd
             
@@ -300,7 +316,8 @@ class MapleTree:
         while curInd < self.eofIndex:
 
             curInd += 1
-            mapleTag = self.__getTag(self.fileStream[curInd])
+            mapleLine = self.fileStream[curInd]
+            mapleTag = self.__getTag(mapleLine)
 
             if mapleTag == "E":
 
@@ -308,21 +325,35 @@ class MapleTree:
             
             elif mapleTag == "H":
 
-                curInd = self.__ToE(curInd)
+                # Check for comment block
+
+                lineValue = self.__getValue(mapleLine)
+
+                if lineValue[:2] == "#*":
+
+                    # Skip comment block
+
+                    curInd = self.__ToCommentEnd(curInd)
+
+                else:
+
+                    # Skip to its E
+
+                    curInd = self.__ToE(curInd)
 
         raise mExc.InvalidMapleFileFormatException(self.fileName)
     
     def __ToCommentEnd(self, curInd: int) -> int:
 
         """Return comment block end line index of current level
-        Raise"""
+        Raise if not found"""
 
         while curInd < self.eofIndex:
 
             curInd += 1
-            mapleLine = self.__removeWhiteSpace(self.fileStream[curInd])
+            mapleLine = self.__removeWhiteSpace(self.fileStream[curInd]).rstrip()
 
-            if mapleLine == "E #*":
+            if mapleLine == "E *#":
 
                 return curInd
 
@@ -340,12 +371,13 @@ class MapleTree:
         try:
 
             ind = 0
+            i = self.mapleIndex
 
             # Format
 
-            for i, mapleLine in enumerate(self.fileStream, self.mapleIndex):
+            while i <= len(self.fileStream) - 1:
 
-                mapleLine = self.__removeWhiteSpace(mapleLine)
+                mapleLine = self.__removeWhiteSpace(self.fileStream[i])
                 tag = self.__getTag(mapleLine)
 
                 if tag == "EOF":
@@ -368,13 +400,17 @@ class MapleTree:
 
                 if tag == "H":
 
-                    ind += 1
-                    
-                    if self.__getValue(mapleLine) == "*#":
+                    if self.__getValue(mapleLine)[:2] == "#*":
 
                         # Comment block
 
                         i = self.__ToCommentEnd(i)
+
+                    else:
+                        
+                        ind += 1
+
+                i += 1
 
         except mExc.InvalidMapleFileFormatException:
 
@@ -402,27 +438,62 @@ class MapleTree:
 
         headCount = len(headers)
         ind = 0
-        headInd = self.mapleIndex
+        lineIndex = self.mapleIndex
         eInd = self.eofIndex
+
+        if "#*" in headers:
+
+            # Cannot search inside comment block
+
+            headerIndex = headers.index("#*")
+            raise mExc.MapleSyntaxException(f"Cannot search inside comment block: Comment block header \"#*\" found in search headers list at index {headerIndex}")
 
         # Find header
 
         try:
 
-            while ind < headCount:
+            while lineIndex < eInd:
 
-                header = f"{self.TAB_FORMAT * ind}H {headers[ind]}\n"
-                headInd = self.fileStream.index(header, headInd, eInd)
-                eInd = self.__ToE(headInd)
+                mapleLine = self.fileStream[lineIndex]
+                mapleTag = self.__getTag(mapleLine)
 
-                ind += 1
+                if mapleTag == "H":
 
-            return True, eInd, headInd
+                    lineValue = self.__getValue(mapleLine)
 
-        except ValueError:
+                    if lineValue[:2] == "#*":
 
-            return False, eInd, ind
-        
+                        # Comment block
+
+                        lineIndex = self.__ToCommentEnd(lineIndex)
+
+                    elif lineValue == headers[ind]:
+
+                        if ind == headCount - 1:
+
+                            headInd = lineIndex
+                            eInd = self.__ToE(headInd)
+                            
+                            return True, eInd, headInd
+
+                        ind += 1
+
+                    else:
+
+                        # Skip to E
+
+                        lineIndex = self.__ToE(lineIndex)
+
+                elif mapleTag == "E":
+
+                    if ind <= 0:
+
+                        raise mExc.InvalidMapleFileFormatException(self.fileName)
+                    
+                    ind -= 1
+
+                lineIndex += 1
+
         except mExc.InvalidMapleFileFormatException:
 
             raise
@@ -430,7 +501,9 @@ class MapleTree:
         except Exception as e:
         
             raise mExc.MapleException(e) from e
-        
+
+        return False, eInd, ind
+    
     #
     #################################
     # Find tag line
@@ -627,7 +700,17 @@ class MapleTree:
 
                 if lineTag == "H":
 
-                    headInd = self.__ToE(headInd)
+                    headerValue = self.__getValue(self.fileStream[headInd])
+
+                    if headerValue[:2] == "#*":
+
+                        # Skip comment block
+
+                        headInd = self.__ToCommentEnd(headInd)
+
+                    else:
+
+                        headInd = self.__ToE(headInd)
 
                 elif lineTag == "CMT" or lineTag[0] == "#":
 
@@ -679,7 +762,17 @@ class MapleTree:
 
                 if lineTag == "H":
 
-                    headInd = self.__ToE(headInd)
+                    headerValue = self.__getValue(self.fileStream[headInd])
+
+                    if headerValue[:2] == "#*":
+
+                        # Skip comment block
+
+                        headInd = self.__ToCommentEnd(headInd)
+                    
+                    else:
+
+                        headInd = self.__ToE(headInd)
 
                 elif lineTag == "CMT" or lineTag[0] == "#":
 
@@ -766,8 +859,18 @@ class MapleTree:
 
                 if fileLine.startswith("H "):
 
-                    retList.append(self.__getValue(fileLine))
-                    headInd = self.__ToE(headInd)
+                    headerValue = self.__getValue(fileLine)
+
+                    if headerValue[:2] == "#*":
+
+                        # Skip comment block
+
+                        headInd = self.__ToCommentEnd(headInd)
+                    
+                    else:
+
+                        retList.append(self.__getValue(fileLine))
+                        headInd = self.__ToE(headInd)
 
         except mExc.MapleDataNotFoundException as dnfe:
 
@@ -785,18 +888,11 @@ ToDo list:
 
 * MapleTree *
 
-- Ignore comment blocks
-    - findHeader
-    - ToE
-    - mapleFormatter
 - Change willSave parameter to **kwargs
     - saveTagLine
     - deleteTag
     - deleteHeader
     [kwargs.get('willSave', False)]
-- Add unexpected keyword arguments exception
-    - MapleSyntaxException.MapleTypeException
-    - "{function}() got an unexpected keyword argument '{kwarg}'"
 
 """
 """ * * * * * * * * * * * * * """
