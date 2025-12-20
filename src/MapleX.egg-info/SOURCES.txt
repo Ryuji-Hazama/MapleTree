@@ -1,0 +1,17 @@
+LICENSE
+MANIFEST.in
+README.md
+pyproject.toml
+setup.py
+release/ReleaseNote_v2.1.0.md
+src/MapleX.egg-info/PKG-INFO
+src/MapleX.egg-info/SOURCES.txt
+src/MapleX.egg-info/dependency_links.txt
+src/MapleX.egg-info/requires.txt
+src/MapleX.egg-info/top_level.txt
+src/maplex/__init__.py
+src/maplex/mapleColors.py
+src/maplex/mapleExceptions.py
+src/maplex/mapleLogger.py
+src/maplex/mapleTreeEditor.py
+src/maplex/utils.py

@@ -1,0 +1,602 @@
+Metadata-Version: 2.4
+Name: MapleX
+Version: 2.1.0
+Summary: MapleX: A Python library for Maple file format operations, with logging and console color utilities
+Author: Ryuji Hazama
+License: MIT License
+        
+        Copyright (c) 2025 Ryuji Hazama
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+Project-URL: PyPI, https://pypi.org/project/MapleX/
+Project-URL: GitHub, https://github.com/Ryuji-Hazama
+Project-URL: Repository, https://github.com/Ryuji-Hazama/MapleTree
+Project-URL: Issues, https://github.com/Ryuji-Hazama/MapleTree/issues
+Project-URL: YouTube, https://www.youtube.com/@ryujihazama
+Project-URL: Instagram, https://www.instagram.com/ryujihazama/
+Classifier: Programming Language :: Python :: 3.12
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: cryptography>=46.0.3
+Requires-Dist: pydantic>=2.12.5
+Dynamic: license-file
+Dynamic: requires-python
+
+# :maple_leaf: MapleX :deciduous_tree:
+
+&nbsp;&nbsp;&nbsp;&nbsp;MapleX is a tool set for Maple file format operations, with logging and console color utilities for Python applications.
+
+&nbsp;&nbsp;&nbsp;&nbsp;***You can install the package from pip with the following command.***
+
+```bash
+pip install maplex
+```
+
+## Maple File
+
+&nbsp;&nbsp;&nbsp;&nbsp;Maple is a file system that I created when I was a child. It's like a combination of the INI file and the Jason file. I made this format that is easy to read and write for both humans and machines.
+
+### Basic Format
+
+```text
+All data before MAPLE\n will be ignored
+
+MAPLE
+# Maple data must start with "MAPLE"
+
+*MAPLE_TIME
+yyyy/MM/dd HH:mm:ss.fffffff
+# Encoded time or optional time in the method parameter
+
+H *STATUS
+    # File status
+    ADT yyyy/MM/dd HH:mm:ss.fffffff
+    RDT yyyy/MM/dd HH:mm:ss.fffffff
+    CNT {int}
+    H #*
+        ADT is the most recent edited time
+        RDT is the second most recent edited time (before ADT)
+        CNT is the data count (Optional)
+    E *#
+E
+H *Header
+    # Headers include '*' are system headers
+E
+H Data Headers
+    H Sub Data Header
+        CMT Comments
+        # This is also a comment
+        Tags Properties
+        # Propaties cannot include 'CRLF.'
+        Tags2 Properties
+        # You cannot use the same tags in a Header except CMT and NTE in H NOTES
+        H Sub Data Header
+            Tags Propaties
+            # You can use the same tag in the child header,
+            # which is already used in the parent's header
+        E
+    E
+    H *NOTES
+        # Note's header
+        NTE {strimg}
+        NTE ...
+        # Note's main strings for the multi-line data
+    E
+    H #*
+        This is a comment block.
+        Starts with "H #*"
+        and ends with "E *#"
+    E *#
+E
+H Data Headers2
+E
+# "\nEOF\n" must be needed for all data
+EOF
+
+All datas after "\nEOF\n" will be ignored
+```
+
+### Data boundary
+
+- Maple data will start with a line `MAPLE\n` and end with `\nEOF\n`.
+- Data outside those lines will be ignored.
+
+E.g.:
+
+```text
+MAPLE
+
+<MAPLE DATA>
+
+EOF
+```
+
+:warning: ***Data outside the Maple data could be lost in the future update***.
+
+### Blocks
+
+- Block starts with `H <Header Name>` and ends with `E`.
+- Blocks can be nested.
+
+E.g.:
+
+```text
+MAPLE
+
+H APP DATA
+    H PATH INFO
+        ...<DATA LINES>
+    E
+    ...<DATA LINES>
+E
+
+EOF
+```
+
+### Data Lines
+
+- Each data line has a 'tag' in front of the data.
+- The string before the very first white space will be treated as a 'tag', and all the data after the white space will be treated as the data.
+
+E.g.: Store `ANY DATA` with a tag `BAR` inside the `FOO` block
+
+```text
+MAPLE
+
+H FOO
+    BAR ANY DATA
+E
+
+EOF
+```
+
+### Comments
+
+`v2.1.0 or newer`
+
+#### Comment Line
+
+- `CMT` tag line will be ignored as a comment line.
+- A line that starts with `#` is also treated as a comment line.
+
+E.g.:
+
+```text
+MAPLE
+
+H DATA
+    CMT This is a comment line.
+    #TAG This is also a comment line.
+    NOTACOMMENT # This cannot be a comment.
+E
+
+EOF
+```
+
+#### Comment Block
+
+- You can write multi-line comments using a comment block that starts with `H #*` and ends with `E *#`.
+
+E.g.:
+
+```text
+MAPLE
+
+H #*
+    THIS IS A COMMENT BLOCK
+    YOU CAN WRITE
+    MULTIPLE LINE COMMENTS
+E *#
+
+EOF
+```
+
+## MapleTree Class
+
+### `\_\_init\_\_()`
+
+```python
+class MapleTree(
+    fileName: str,
+    tabInd: int = 4,
+    encrypt: bool = False,
+    key: bytes | None = None,
+    createBaseFile: bool = False
+)
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`fileName`**|\*|Maple file name|
+|**`tabInd`**||White space count for indents|
+|**`encrypt`**||File encryption|
+|**`key`**||Encryption key|
+|**`createBaseFile`**||Create empty base file|
+
+&nbsp;&nbsp;&nbsp;&nbsp;`__init__` initialize the class and load a Maple file data to the buffer.
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("FileName.mpl")
+```
+
+#### Open existing Maple file
+
+&nbsp;&nbsp;&nbsp;&nbsp;`__init__` will open the Maple file and load data to the buffer.
+
+```python
+mapleFile = MapleTree("FileName.mpl")
+```
+
+#### Change indent size
+
+```python
+mapleFile = MapleTree("FileName.mpl", tabInd=4)
+mapleFile._saveToFile()
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This makes the maple file look like
+
+```text
+MAPLE
+
+H FOO
+    H BAR
+        <MAPLE DATA LINES>
+    E
+    <MAPLE DATA LINES>
+E
+
+EOF
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;If you change the `tabInd` value
+
+```python
+mapleFile = MapleTree("FileName.mpl", tabInd=2)
+mapleFile._saveToFile()
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This makes the maple file look like
+
+```text
+MAPLE
+
+H FOO
+  H BAR
+    <MAPLE DATA LINES>
+  E
+  <MAPLE DATA LINES>
+E
+
+EOF
+```
+
+#### Create a Base File
+
+&nbsp;&nbsp;&nbsp;&nbsp;You can create an empty base file when you initialize the class instance.
+
+```python
+mapleFile = MapleTree("NewFile.mpl", createBaseFile=True)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This creates an empty Maple file if the file `NewFile.mpl` does not exist.
+
+```text
+MAPLE
+EOF
+```
+
+#### File Data Encryption
+
+&nbsp;&nbsp;&nbsp;&nbsp;If `encrypt=True`, the instance decrypts data when it is read, and encrypts data when it is saved.  
+&nbsp;&nbsp;&nbsp;&nbsp;You need to specify the byte key when you use encryption, and the file must be encrypted.
+
+```python
+mapleFile = MapleTree("FileName.mpl", encrypt=True, key=key)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;You can create an encrypted base file with `createBaseFile=True` if the file does not exist.
+
+```python
+mapleFile = MapleTree("NewFile.mpl", encrypt=True, key=key, createBaseFile=True)
+```
+
+### `readMapleTag()`
+
+```python
+def readMapleTag(
+    tag: str,
+    *headers: str
+) -> str
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`tag`**|\*|Tag to find|
+|**`headers`**||Headers contains the tag|
+
+&nbsp;&nbsp;&nbsp;&nbsp;`readMapleTag` returns a data string tagged with the `tag` in `headers` and returns `None` if the tag was not found.
+
+E.g.:
+
+Sample Data (`Sample.mpl`)
+
+```text
+MAPLE
+
+H FOO
+    H BAR
+        TAG1 DATA 1
+        TAG2 DATA 2
+    E
+E
+
+EOF
+```
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("Sample.mpl")
+mapleData = mapleFile.readMapleTag("TAG1", "FOO", "BAR")
+
+print(mapleData)
+# Outputs "DATA 1"
+```
+
+### `saveTagLine()`
+
+```python
+def saveTagLine(
+    tag: str,
+    valueStr: str,
+    willSave: bool,
+    *headers: str
+) -> None
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`tag`**|\*|Target tag|
+|**`valueStr`**|\*|Data value (string)|
+|**`willSave`**|\*|Save to file flag|
+|**`headers`**||Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;`saveTagLine` saves a value with a tag in a header block specified by the parameter.
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.txt", createBaseFile=True)
+mapleFile.saveTagLine("TAG", "VALUE", True, "FOO")
+
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code outputs a file contains:
+
+```text
+MAPLE
+H FOO
+    TAG VALUE
+E
+EOF
+```
+
+#### Update a Buffer Content
+
+&nbsp;&nbsp;&nbsp;&nbsp;If `willSave=False`, the buffer content will be updated, but no update on physical file content.
+
+E.g.:
+
+```python
+mapleFile.saveTagLine("TAG", "NEW VALUE", False, "FOO")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code changes the contents on buffer like:
+
+```text
+MAPLE
+H FOO
+    TAG NEW VALUE
+E
+EOF
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;But the change is **NOT** being saved in the file.
+
+```text
+MAPLE
+H FOO
+    TAG VALUE
+E
+EOF
+```
+
+#### Update and Save Changes
+
+&nbsp;&nbsp;&nbsp;&nbsp;If `willSave=True`, all the changes to the buffer will be saved.
+
+```python
+mapleFile.saveTagLine("BAR", "ANOTHER VALUE", True, "FOO")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code changes the contents in the file like:
+
+```text
+MAPLE
+H FOO
+    TAG NEW VALUE
+    BAR ANOTHER VALUE
+E
+EOF
+```
+
+#### Create New Block and Tag
+
+&nbsp;&nbsp;&nbsp;&nbsp;If the block and/or the header(s) specified with the parameters do not exist in the data, the function creates the new header block(s) and the tag and saves the value.
+
+```python
+mapleFile.saveTagLine("TAZ", "NEW HEADER AND TAG", False, "NEW_HEADER")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code will change the data like:
+
+```text
+MAPLE
+H FOO
+    TAG NEW VALUE
+    BAR ANOTHER VALUE
+E
+H NEW_HEADER
+    TAZ NEW HEADER AND TAG
+E
+EOF
+```
+
+### `deleteTag()`
+
+```python
+def deleteTag(
+    delTag: str,
+    willSave: bool = False,
+    *headers: str
+) -> bool
+```
+
+### `getTagValueDict()`
+
+```python
+getTagValueDic(
+    *headers: str
+) -> dict[str, str]
+```
+
+### `getTags()`
+
+```python
+def getTags(
+    *headers: str
+) -> list[str]
+```
+
+### `deleteHeader()`
+
+```python
+def deleteHeader(
+    delHead: str,
+    willSave: bool = False,
+    *Headers: str
+) -> bool
+```
+
+### `getHeaders()`
+
+```python
+def getHeaders(
+    *headers: str
+) -> list
+```
+
+## Logger Class
+
+&nbsp;&nbsp;&nbsp;&nbsp;Logger is a logging object for Python applications. It outputs application logs to log files and to standard output.
+
+### Usage
+
+```python
+from maplex import Logger
+
+logger = Logger("FunctionName")
+logger.Info("Hello there!")
+```
+
+This outputs:
+
+```console
+[INFO ][FunctionName] <module>(4) Hello there!
+```
+
+File output will be:  `log_yyyyMMdd.log`
+
+```log
+(PsNo) yyyy-MM-dd HH:mm:ss.fff [INFO ][FunctionName] <module>(4) Hello there!
+```
+
+#### Log Level
+
+- `TRACE`
+- `DEBUG`
+- `INFO`
+- `WARN`
+- `ERROR`
+- `FATAL`
+
+#### ShowError function
+
+&nbsp;&nbsp;&nbsp;&nbsp;This outputs the error logs and stuck trace.
+
+Function:
+
+```python
+Logger.ShowError(
+    ex: Exception,
+    message: str | None = None,
+    fatal: bool = False
+)
+```
+
+- If `fatal=True`, it outputs log as a `FATAL` log level.
+
+### Settings
+
+Working on...
+
+## Exceptions
+
+## Console Colors
+
+## Install maplex :inbox_tray:
+
+### From PyPI
+
+```bash
+python[3] -m pip install maplex [--break-system-packages]
+```
+
+### Manual Installation
+
+1. Download `./dist/maplex-<version>-py3-none-any.whl`
+2. Run `python[3] -m pip install /path/to/downloaded/maplex-<version>-py3-none-any.whl [--break-system-packages]`
+
+### Build the Package by Yourself
+
+&nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] -m build`  
+
+or
+
+&nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] setup.py sdist bdist_wheel`

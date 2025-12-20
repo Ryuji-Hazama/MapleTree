@@ -7,7 +7,7 @@ name = "MapleX"
 version = "2.1.0"
 description = "MapleX: A Python library for Maple file format operations, with logging and console color utilities"
 readme = "README.md"
-license = {text = "MIT", file = "LICENSE"}
+license = {file = "LICENSE"}
 authors = [
     {name = "Ryuji Hazama"}
 ]
