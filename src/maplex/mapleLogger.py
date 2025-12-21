@@ -10,7 +10,14 @@ from .mapleColors import ConsoleColors
 
 class Logger:
 
-    def __init__(self, func: str = "", workingDirectory: str | None = None, cmdLogLevel: str | None = None, fileLogLevel: str | None = None, maxLogSize: float | None = None):
+    def __init__(
+            self,
+            func: str = "",
+            workingDirectory: str | None = None,
+            cmdLogLevel: str | None = None,
+            fileLogLevel: str | None = None,
+            maxLogSize: float | None = None
+        ) -> None:
 
         """
         Set a negative value to maxLogSize for an infinite log file size.

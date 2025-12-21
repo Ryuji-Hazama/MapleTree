@@ -670,6 +670,28 @@ print(headerList)
 
 &nbsp;&nbsp;&nbsp;&nbsp;Logger is a logging object for Python applications. It outputs application logs to log files and to standard output.
 
+### Logger Initialization
+
+```python
+    def __init__(
+            func: str = "",
+            workingDirectory: str | None = None,
+            cmdLogLevel: str | None = None,
+            fileLogLevel: str | None = None,
+            maxLogSize: float | None = None
+        ) -> None:
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`func`**||Primary function name|
+|**`workingDirectory`**||Log file output directory|
+|**`cmdLogLevel`**||Terminal output log level|
+|**`fileLogLevel`**||Log file output log level|
+|**`maxLogSize`**||Log file max size|
+
+&nbsp;&nbsp;&nbsp;&nbsp;The parameter overwrites the settings configured in `config.mpl`.
+
 ### Usage
 
 ```python
