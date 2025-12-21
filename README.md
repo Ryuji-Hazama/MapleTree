@@ -99,8 +99,8 @@ E.g.:
 ```text
 MAPLE
 
-H APP DATA
-    H PATH INFO
+H FOO
+    H BAR
         ...<DATA LINES>
     E
     ...<DATA LINES>
@@ -169,7 +169,7 @@ EOF
 
 ## MapleTree Class
 
-### `\_\_init\_\_()`
+### `__init__()`
 
 ```python
 class MapleTree(
@@ -349,7 +349,7 @@ E.g.:
 ```python
 from maplex import MapleTree
 
-mapleFile = MapleTree("SampleData.txt", createBaseFile=True)
+mapleFile = MapleTree("SampleData.mpl", createBaseFile=True)
 mapleFile.saveTagLine("TAG", "VALUE", True, "FOO")
 
 ```
@@ -445,6 +445,48 @@ def deleteTag(
 ) -> bool
 ```
 
+|Property|Required|Value|
+|--------|--------|-----|
+|**`delTag`**|\*|Tag to delete|
+|**`willSave`**||Save to file flag|
+|**`headers`**||Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Delete a tag and its value.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    BAR DATA 1
+    BAZ DATA 2
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.mpl")
+mapleFile.deleteTag("BAR", True, "FOO")
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;The file data will be changed like:
+
+```text
+MAPLE
+
+H FOO
+    BAZ DATA 2
+E
+
+EOF
+```
+
 ### `getTagValueDict()`
 
 ```python
@@ -453,12 +495,74 @@ getTagValueDic(
 ) -> dict[str, str]
 ```
 
+|Property|Required|Value|
+|--------|--------|-----|
+|**`headers`**||Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Get tags and values in the header block specified with the parameter as a `dict`.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    BAR DATA 1
+    BAZ DATA 2
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.mpl")
+dataDict = mapleFile.getTagValueDict()
+
+print(dataDict)
+# Outputs "{'BAR': 'DATA 1', 'BAZ': 'DATA 2'}"
+```
+
 ### `getTags()`
 
 ```python
 def getTags(
     *headers: str
 ) -> list[str]
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`headers`**||Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Get the list of the tags in header block specified with parameter.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    BAR DATA 1
+    BAZ DATA 2
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.mpl")
+tagList = mapleFile.getTags()
+
+print(tagList)
+# Outputs "['BAR', 'BAZ']"
 ```
 
 ### `deleteHeader()`
@@ -471,12 +575,95 @@ def deleteHeader(
 ) -> bool
 ```
 
+|Property|Required|Value|
+|--------|--------|-----|
+|**`delHead`**|\*|Deleting header|
+|**`willSave`**||Save to file flag|
+|**`headers`**||Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;This deletes an entire header block and its associated data, including child blocks.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    BAR DATA 1
+    H BAZ
+        QUX DATA 2
+    E
+E
+H QUUX
+    CORGE DATA 3
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleTree = MapleTree("SampleData.mpl")
+mapleTree.deleteHeader("FOO", True)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code changes the data like:
+
+```text
+MAPLE
+
+H QUUX
+    CORGE DATA 3
+E
+
+EOF
+```
+
 ### `getHeaders()`
 
 ```python
 def getHeaders(
     *headers: str
 ) -> list
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`headers`**||Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Get the list of the headers in header block specified with parameter.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    BAR DATA 1
+    H BAZ
+        QUX DATA 2
+    E
+E
+H QUUX
+    CORGE DATA 3
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleTree = MapleTree("SampleData.mpl")
+headerList = mapleTree.getHeaders()
+
+print(headerList)
+# Outputs "['FOO', 'QUUX']"
 ```
 
 ## Logger Class
