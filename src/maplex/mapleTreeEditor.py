@@ -1,6 +1,5 @@
 import os.path as path
 from cryptography.fernet import Fernet
-from more_itertools import strip
 from . import mapleExceptions as mExc
 
 class MapleTree:

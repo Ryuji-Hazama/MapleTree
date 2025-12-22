@@ -688,7 +688,7 @@ print(headerList)
 |**`workingDirectory`**||Log file output directory|
 |**`cmdLogLevel`**||Terminal output log level|
 |**`fileLogLevel`**||Log file output log level|
-|**`maxLogSize`**||Log file max size|
+|**`maxLogSize`**||Log file max size (MB)|
 
 &nbsp;&nbsp;&nbsp;&nbsp;The parameter overwrites the settings configured in `config.mpl`.
 
@@ -740,7 +740,29 @@ Logger.ShowError(
 
 ### Settings
 
-Working on...
+- You can configure log settings with `config.mpl`.
+- If `config.mpl` does not exist, the instance auto-generates the file.
+
+Auto-generated `config.mpl`:
+
+```text
+MAPLE
+H *LOG_SETTINGS
+    CMD INFO
+    FLE INFO
+    # TRACE, DEBUG, INFO, WARN, ERROR, FATAL
+    MAX 3
+    OUT logs
+E
+EOF
+```
+
+|TAG|Value|
+|---|-----|
+|**`CMD`**|Console log level|
+|**`FLE`**|File log level|
+|**`MAX`**|Log file max size (MB)|
+|**`OUT`**|Log file output path|
 
 ## Exceptions
 
