@@ -38,7 +38,20 @@ class MapleDataNotFoundException(MapleException):
 
     def __init__(self, fileName: str = "", message: str = "Data not found"):
 
-        self.message = f"{message}: {fileName}"
+        if message != "":
+
+            if fileName != "":
+
+                self.message = f"{message}: {fileName}"
+
+            else:
+
+                self.message = message
+        
+        else:
+
+            self.message = f"Data not found: {fileName}"
+
         super().__init__(self.message)
 
 class MapleHeaderNotFoundException(MapleDataNotFoundException):
@@ -85,7 +98,7 @@ class MapleTagNotFoundException(MapleDataNotFoundException):
 
         super().__init__(self.message, fileName)
 
-class NotAMapleFileException(MapleException):
+class NotAMapleFileException(MapleDataNotFoundException):
 
     def __init__(self, filePath: str = "", message: str = "The file is not a Maple file"):
 
@@ -99,7 +112,7 @@ class InvalidMapleFileFormatException(NotAMapleFileException):
         self.message = f"[{message}: {mapleFile}]"
         super().__init__(self.message)
 
-class MapleFileEmptyException(InvalidMapleFileFormatException):
+class MapleFileEmptyException(NotAMapleFileException):
 
     def __init__(self, mapleFile="", message="File is empty"):
         super().__init__(mapleFile, message)

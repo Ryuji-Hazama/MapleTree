@@ -19,8 +19,6 @@ class MapleTree:
 
             raise mExc.KeyEmptyException(fileName)
 
-        f = None
-
         if createBaseFile and not path.isfile(fileName):
 
             # Create a base Maple file
@@ -35,50 +33,54 @@ class MapleTree:
 
                     mapleBaseString = Fernet(key).encrypt(mapleBaseString.encode()).decode()
 
-                f = open(fileName, "w")
-                f.write(mapleBaseString)
-                f.close()
+                with open(fileName, "w") as f:
+
+                    f.write(mapleBaseString)
 
             except Exception as e:
 
                 raise mExc.MapleException(e) from e
-            
-            finally:
-
-                if f is not None:
-                    f.close()
 
         try:
 
-            f = open(fileName, "r")
+            with open(fileName, "r") as f:
 
-            if encrypt:
+                if encrypt:
 
-                # Decode encryption
-                
-                fileData = f.read()
-                fileData = Fernet(key).decrypt(fileData.encode()).decode()
-                self.fileStream = fileData.split("\n")
-
-                # Add \r at the end of each line
-
-                for i, fileLine in enumerate(self.fileStream):
-
-                    self.fileStream[i] = f"{fileLine}\n"
-
-            else:
+                    # Decode encryption
                     
-                self.fileStream = f.readlines()
+                    fileData = f.read()
+                    fileData = Fernet(key).decrypt(fileData.encode()).decode()
+                    self.fileStream = fileData.split("\n")
 
-            # If the file is only one line or empty
+                    # Add \r at the end of each line
 
-            if len(self.fileStream) < 2:
+                    for i, fileLine in enumerate(self.fileStream):
+
+                        self.fileStream[i] = f"{fileLine}\n"
+
+                else:
+                        
+                    self.fileStream = f.readlines()
+
+            # If the file is empty
+
+            if len(self.fileStream) == 0:
 
                 raise mExc.MapleFileEmptyException(fileName)
-            
+
             # Search data region
 
-            self.mapleIndex = self.fileStream.index("MAPLE\n")
+            try:
+
+                self.mapleIndex = self.fileStream.index("MAPLE\n")
+
+            except ValueError as ve:
+
+                raise mExc.NotAMapleFileException(fileName) from ve
+            
+            # Find EOF index
+
             self.eofIndex = len(self.fileStream) - 1
             self.eofIndex = self._findEof(self.mapleIndex)
 
@@ -94,18 +96,13 @@ class MapleTree:
 
             raise mExc.MapleFileNotFoundException(fileName) from fnfe
         
-        except ValueError or mExc.InvalidMapleFileFormatException as ve:
+        except mExc.NotAMapleFileException as ve:
 
-            raise mExc.InvalidMapleFileFormatException(fileName) from ve
+            raise mExc.NotAMapleFileException(fileName) from ve
 
         except Exception as ex:
 
             raise mExc.MapleException(ex) from ex
-        
-        finally:
-
-            if f is not None:
-                f.close()
         
     #
     ##############################
@@ -139,8 +136,9 @@ class MapleTree:
     # Save to file
 
     def _saveToFile(self):
-
-        f = None
+        """
+        Save current file stream to file
+        """
 
         # Create file data
 
@@ -154,19 +152,16 @@ class MapleTree:
 
                 fileData = "".join(self.fileStream)
 
-            f = open(self.fileName, "w")
-            f.writelines(fileData)
-            f.close()
+            # Save to file
+
+            with open(self.fileName, "w") as f:
+
+                f.writelines(fileData)
 
         except Exception as e:
 
             raise mExc.MapleException(e) from e
         
-        finally:
-
-            if f is not None:
-                f.close()
-
     #
     ##############################
     # Remove white space

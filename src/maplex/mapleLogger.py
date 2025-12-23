@@ -1,7 +1,7 @@
 import datetime
 import inspect
 import os
-from os import path, getpid
+from os import path
 import sys
 import traceback
 from enum import IntEnum
@@ -27,6 +27,7 @@ class Logger:
         self.consoleLogLevel = -1
         self.fileLogLevel = -1
         self.CWD = os.getcwd()
+        self.pid = os.getpid()
         self.consoleColors = ConsoleColors()
         
         # Check the OS (Windows cannot change the console color)
@@ -50,22 +51,23 @@ class Logger:
 
             if not path.isfile(configFile):
 
-                f = open(configFile, "w")
-                f.write("MAPLE\n"
-                        "H *LOG_SETTINGS\n"
-                        "    CMD INFO\n"
-                        "    FLE INFO\n"
-                        "    # TRACE, DEBUG, INFO, WARN, ERROR, FATAL\n"
-                        "    MAX 3\n"
-                        "    OUT logs\n"
-                        "E\nEOF")
-                f.close()
+                with open(configFile, "w") as f:
+
+                    f.write("MAPLE\n"
+                            "H *LOG_SETTINGS\n"
+                            "    CMD INFO\n"
+                            "    FLE INFO\n"
+                            "    # TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NONE\n"
+                            "    MAX 3\n"
+                            "    OUT logs\n"
+                            "E\nEOF")
                 
             maple = MapleTree(configFile)
 
         except:
 
             maple = None
+
         #
         ############################
         # Check output directory
@@ -190,6 +192,7 @@ class Logger:
         WARN = 3
         ERROR = 4
         FATAL = 5
+        NONE = 6
 
     #
     ################
@@ -213,12 +216,6 @@ class Logger:
         Output log to log file and console.
         """
 
-        ''' - - - - - - -*
-        *                *
-        * Logging Object *
-        *                *
-        * - - - - - - -'''
-
         # Console colors
 
         bBlack = self.consoleColors.bBlack
@@ -229,15 +226,13 @@ class Logger:
         Bold = self.consoleColors.Bold
         Reset = self.consoleColors.Reset
 
-        f = open(self.logfile, "a")
-
-        # Get caller informations
-
-        callerFrame = inspect.stack()[callerDepth]
-        callerFunc = callerFrame.function
-        callerLine = callerFrame.lineno
-
         try:
+
+            # Get caller informations
+
+            callerFrame = inspect.stack()[callerDepth]
+            callerFunc = callerFrame.function
+            callerLine = callerFrame.lineno
 
             # Set console color
 
@@ -277,16 +272,14 @@ class Logger:
                 print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
         
             if loglevel >= self.fileLogLevel:
-                print(f"({getpid()}) {f"{datetime.datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {callerFunc}({callerLine}) {message}", file=f)
+                with open(self.logfile, "a") as f:
+                    print(f"({self.pid}) {f"{datetime.datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {callerFunc}({callerLine}) {message}", file=f)
 
         except Exception as ex:
 
             # If faled to export, print error info to console
 
             print(f"{Red}[ERROR] {ex}{Reset}")
-
-        finally:
-            f.close()
 
         if self.maxLogSize > 0:
 
@@ -398,7 +391,7 @@ ToDo list:
 
 * Logger *
 
-None
+- Configure log format in config file
 
 """
 """ * * * * * * * * * * * * * """

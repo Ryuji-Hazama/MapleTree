@@ -538,7 +538,7 @@ def getTags(
 |--------|--------|-----|
 |**`headers`**||Target headers|
 
-&nbsp;&nbsp;&nbsp;&nbsp;Get the list of the tags in header block specified with parameter.
+&nbsp;&nbsp;&nbsp;&nbsp;Get the list of the tags in the header block specified with the parameter.
 
 Sample data: `SampleData.mpl`
 
@@ -634,7 +634,7 @@ def getHeaders(
 |--------|--------|-----|
 |**`headers`**||Target headers|
 
-&nbsp;&nbsp;&nbsp;&nbsp;Get the list of the headers in header block specified with parameter.
+&nbsp;&nbsp;&nbsp;&nbsp;Get the list of the headers in the header block specified with the parameter.
 
 Sample data: `SampleData.mpl`
 
@@ -782,25 +782,25 @@ EOF
 
 ### `class KeyEmptyException(MapleException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when `encrypt=True` at the instance initialization but the key for encription is missing (`None` or empty).
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when `encrypt=True` at the instance initialization, but the key for encryption is missing (`None` or empty).
 
 ### `class MapleFileLockedException(MapleException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the instance try to open the file, but the other instance already locked the file.
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the instance tries to open the file, but the other instance has already locked the file.
 
 ### `class MapleDataNotFoundException(MapleException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the data has not found in the file.
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the data is not found in the file.
 
 ### `class MapleHeaderNotFoundException(MapleDataNotFoundException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the header (specified by the user) not found in the data.
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the header (specified by the user) is not found in the data.
 
 ### `class MapleTagNotFoundException(MapleDataNotFoundException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the tag (specified by the user) not found in the data.
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the tag (specified by the user) is not found in the data.
 
-### `class NotAMapleFileException(MapleException)`
+### `class NotAMapleFileException(MapleDataNotFoundException)`
 
 &nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file is not a Maple file.
 
@@ -812,7 +812,7 @@ EOF
 
 - The file has a "MAPLE" line, but the format is wrong or broken.
 
-### `class MapleFileEmptyException(InvalidMapleFileFormatException)`
+### `class MapleFileEmptyException(NotAMapleFileException)`
 
 &nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file is empty (No data)
 
