@@ -729,12 +729,18 @@ File output will be:  `log_yyyyMMdd.log`
 Function:
 
 ```python
-Logger.ShowError(
+def ShowError(
     ex: Exception,
     message: str | None = None,
     fatal: bool = False
 )
 ```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`ex`**|\*|Exception|
+|**`message`||Custom error message|
+|**`fatal`||Show error as `FATAL`|
 
 - If `fatal=True`, it outputs log as a `FATAL` log level.
 
@@ -766,20 +772,120 @@ EOF
 
 ## Exceptions
 
+### `class MapleException(Exception)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This is a basic exception class for MapleTree.
+
+### `class MapleFileNotFoundException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file which specified at the instance initialization was not found.
+
+### `class KeyEmptyException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when `encrypt=True` at the instance initialization but the key for encription is missing (`None` or empty).
+
+### `class MapleFileLockedException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the instance try to open the file, but the other instance already locked the file.
+
+### `class MapleDataNotFoundException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the data has not found in the file.
+
+### `class MapleHeaderNotFoundException(MapleDataNotFoundException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the header (specified by the user) not found in the data.
+
+### `class MapleTagNotFoundException(MapleDataNotFoundException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the tag (specified by the user) not found in the data.
+
+### `class NotAMapleFileException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file is not a Maple file.
+
+- The file without a "MAPLE" line.
+
+### `class InvalidMapleFileFormatException(NotAMapleFileException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file format is an invalid Maple format.
+
+- The file has a "MAPLE" line, but the format is wrong or broken.
+
+### `class MapleFileEmptyException(InvalidMapleFileFormatException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file is empty (No data)
+
+### `class MapleSyntaxException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the syntax of the MapleTree function (mostly its parameter) is invalid.
+
+### `class MapleTypeException(MapleSyntaxException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the user hands the unknown keyword arguments as the `**kwargs` to the MapleTree function.
+
 ## Console Colors
+
+### Standard colors
+
+|Key|Value|Color|
+|---|-----|-----|
+|`Black`|\\033\[30m|Black|
+|`Red`|\\033\[31m|Red|
+|`Green`|\\033\[32m|Green|
+|`Yellow`|\\033\[33m|Yellow|
+|`Blue`|\\033\[34m|Blue|
+|`Magenta`|\\033\[35m|Magenta|
+|`LightBlue`|\\033\[36m|LightBlue|
+|`White`|\\033\[37m|White|
+
+### Bright colors
+
+|Key|Value|Color|
+|---|-----|-----|
+|`bBlack`|\\033\[90m|Black|
+|`bRed`|\\033\[91m|Red|
+|`bGreen`|\\033\[92m|Green|
+|`bYellow`|\\033\[93m|Yellow|
+|`bBlue`|\\033\[94m|Blue|
+|`bMagenta`|\\033\[95m|Magenta|
+|`bLightBlue`|\\033\[96m|LightBlue|
+|`bWhite`|\\033\[97m|White|
+
+### Background colors
+
+|Key|Value|Color|
+|---|-----|-----|
+|`bgBlack`|\\033\[40m|Black|
+|`bgRed`|\\033\[41m|Red|
+|`bgGreen`|\\033\[42m|Green|
+|`bgYellow`|\\033\[43m|Yellow|
+|`bgBlue`|\\033\[44m|Blue|
+|`bgMagenta`|\\033\[45m|Magenta|
+|`bgLightBlue`|\\033\[46m|LightBlue|
+|`bgWhite`|\\033\[47m|White|
+
+### Other formats
+
+|Key|Value|Description|
+|---|-----|-----------|
+|`Bold`|\\033\[1m|Bold text|
+|`Underline`|\\033\[4m|Underlined text|
+|`Reversed`|\\033\[7m|Reversed colors|
+|`Reset`|\\033\[0m|Reset formatting|
 
 ## Install maplex :inbox_tray:
 
 ### From PyPI
 
 ```bash
-python[3] -m pip install maplex [--break-system-packages]
+[python[3] -m] pip install maplex [--break-system-packages]
 ```
 
 ### Manual Installation
 
 1. Download `./dist/maplex-<version>-py3-none-any.whl`
-2. Run `python[3] -m pip install /path/to/downloaded/maplex-<version>-py3-none-any.whl [--break-system-packages]`
+2. Run `[python[3] -m] pip install /path/to/downloaded/maplex-<version>-py3-none-any.whl [--break-system-packages]`
 
 ### Build the Package by Yourself
 
