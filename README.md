@@ -739,8 +739,8 @@ def ShowError(
 |Property|Required|Value|
 |--------|--------|-----|
 |**`ex`**|\*|Exception|
-|**`message`||Custom error message|
-|**`fatal`||Show error as `FATAL`|
+|**`message`**||Custom error message|
+|**`fatal`**||Show error as `FATAL`|
 
 - If `fatal=True`, it outputs log as a `FATAL` log level.
 
@@ -756,7 +756,8 @@ MAPLE
 H *LOG_SETTINGS
     CMD INFO
     FLE INFO
-    # TRACE, DEBUG, INFO, WARN, ERROR, FATAL
+    # TRACE, DEBUG, INFO, WARN,
+    # ERROR, FATAL, NONE
     MAX 3
     OUT logs
 E
@@ -769,6 +770,9 @@ EOF
 |**`FLE`**|File log level|
 |**`MAX`**|Log file max size (MB)|
 |**`OUT`**|Log file output path|
+
+- To disable the log output, set log level to `NONE`.
+- You can use a `float` number for the file max size (E.g. `2.5` for `2.5MB`)
 
 ## Exceptions
 

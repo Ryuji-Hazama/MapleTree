@@ -1,10 +1,11 @@
-import datetime
+from datetime import datetime
 import inspect
 import os
 from os import path
 import sys
 import traceback
 from enum import IntEnum
+from typing import Literal
 from .mapleTreeEditor import MapleTree
 from .mapleColors import ConsoleColors
 
@@ -14,8 +15,8 @@ class Logger:
             self,
             func: str = "",
             workingDirectory: str | None = None,
-            cmdLogLevel: str | None = None,
-            fileLogLevel: str | None = None,
+            cmdLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
+            fileLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
             maxLogSize: float | None = None
         ) -> None:
 
@@ -57,7 +58,8 @@ class Logger:
                             "H *LOG_SETTINGS\n"
                             "    CMD INFO\n"
                             "    FLE INFO\n"
-                            "    # TRACE, DEBUG, INFO, WARN, ERROR, FATAL, NONE\n"
+                            "    # TRACE, DEBUG, INFO, WARN,\n"
+                            "    # ERROR, FATAL, NONE\n"
                             "    MAX 3\n"
                             "    OUT logs\n"
                             "E\nEOF")
@@ -88,7 +90,7 @@ class Logger:
 
             self.CWD = path.join(os.getcwd(), self.CWD)
 
-        self.logfile = path.join(self.CWD, f"log_{datetime.datetime.now():%Y%m%d}.log")
+        self.logfile = path.join(self.CWD, f"log_{datetime.now():%Y%m%d}.log")
 
         #
         ############################
@@ -273,7 +275,7 @@ class Logger:
         
             if loglevel >= self.fileLogLevel:
                 with open(self.logfile, "a") as f:
-                    print(f"({self.pid}) {f"{datetime.datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {callerFunc}({callerLine}) {message}", file=f)
+                    print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {callerFunc}({callerLine}) {message}", file=f)
 
         except Exception as ex:
 

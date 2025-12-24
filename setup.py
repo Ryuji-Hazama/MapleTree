@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name = "MapleX",
-    version = "2.1.0",
+    version = "2.2.0.dev1",
     author = "Ryuji Hazama",
     description="""MapleX: A Python library for Maple file format operations, with logging and console color utilities""",
     long_description=open('README.md').read(),
