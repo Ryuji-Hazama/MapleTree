@@ -12,6 +12,7 @@ from .mapleExceptions import (
     MapleException,
     MapleFileEmptyException,
     MapleFileLockedException,
+    MapleFileNotFoundException,
     MapleHeaderNotFoundException,
     MapleTagNotFoundException,
     NotAMapleFileException
@@ -27,6 +28,7 @@ __all__ = [
     'MapleException',
     'MapleFileEmptyException',
     'MapleFileLockedException',
+    'MapleFileNotFoundException',
     'MapleHeaderNotFoundException',
     'MapleTagNotFoundException',
     'NotAMapleFileException',

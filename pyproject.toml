@@ -4,10 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MapleX"
-version = "2.2.0.dev1"
-description = "MapleX: A Python library for Maple file format operations, with logging and console color utilities"
+version = "2.2.0.dev2"
+description = """
+MapleX: A Python library for Maple file format operations, with logging and console color utilities
+"""
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [
     {name = "Ryuji Hazama"}
 ]
@@ -27,7 +30,7 @@ where = ["src"]
 
 [project.urls]
 PyPI = "https://pypi.org/project/MapleX/"
-GitHub = "https://github.com/Ryuji-Hazama"
+Homepage = "https://github.com/Ryuji-Hazama"
 Repository = "https://github.com/Ryuji-Hazama/MapleTree"
 Issues = "https://github.com/Ryuji-Hazama/MapleTree/issues"
 YouTube = "https://www.youtube.com/@ryujihazama"

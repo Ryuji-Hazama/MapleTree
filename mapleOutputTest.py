@@ -3,7 +3,7 @@ You can use this file to check the actual output and
 Maple file modifications.
 """
 
-import MapleTree
+import maplex
 
 def runTest():
 
@@ -20,8 +20,8 @@ def runTest():
         ERROR = "ERROR"
         FATAL = "FATAL"
 
-        logger = MapleTree.Logger("MainLogger")
-        config = MapleTree.MapleTree("config.mpl")
+        logger = maplex.Logger("MainLogger")
+        config = maplex.MapleTree("config.mpl")
         logger.Info("Starting Maple Output Test")
 
         # Change log level to TRACE and output all log levels
@@ -29,7 +29,7 @@ def runTest():
         config.saveTagLine(CMD, TRACE, False, LOG_SETTINGS)
         config.saveTagLine(FLE, TRACE, True, LOG_SETTINGS)
 
-        loggerOutputAll = MapleTree.Logger("LoggerOutputAll")
+        loggerOutputAll = maplex.Logger("LoggerOutputAll")
         loggerOutputAll.Trace("This is a TRACE level message.")
         loggerOutputAll.Debug("This is a DEBUG level message.")
         loggerOutputAll.Info("This is an INFO level message.")
@@ -41,7 +41,7 @@ def runTest():
 
         config.saveTagLine(CMD, ERROR, True, LOG_SETTINGS)
 
-        loggerOutputErrorConsole = MapleTree.Logger("LoggerOutputErrorConsole")
+        loggerOutputErrorConsole = maplex.Logger("LoggerOutputErrorConsole")
         loggerOutputErrorConsole.Trace("This is a TRACE level message. Should NOT appear on console.")
         loggerOutputErrorConsole.Debug("This is a DEBUG level message. Should NOT appear on console.")
         loggerOutputErrorConsole.Info("This is an INFO level message. Should NOT appear on console.")
@@ -54,7 +54,7 @@ def runTest():
         config.saveTagLine(CMD, TRACE, False, LOG_SETTINGS)
         config.saveTagLine(FLE, WARN, True, LOG_SETTINGS)
 
-        loggerOutputWarnFile = MapleTree.Logger("LoggerOutputWarnFile")
+        loggerOutputWarnFile = maplex.Logger("LoggerOutputWarnFile")
         loggerOutputWarnFile.Trace("This is a TRACE level message. Should NOT appear in file.")
         loggerOutputWarnFile.Debug("This is a DEBUG level message. Should NOT appear in file.")
         loggerOutputWarnFile.Info("This is an INFO level message. Should NOT appear in file.")
@@ -70,7 +70,7 @@ def runTest():
 
         # Force log level to WARN for both console and file by parameter
 
-        loggerForceLevel = MapleTree.Logger("LoggerForceLevel", cmdLogLevel=DEBUG, fileLogLevel=ERROR)
+        loggerForceLevel = maplex.Logger("LoggerForceLevel", cmdLogLevel=DEBUG, fileLogLevel=ERROR)
         loggerForceLevel.Trace("This is a TRACE level message. Should NOT appear anywhere.")
         loggerForceLevel.Debug("This is a DEBUG level message. Should appear in only console.")
         loggerForceLevel.Info("This is an INFO level message. Should appear in only console.")
