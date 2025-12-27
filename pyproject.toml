@@ -9,7 +9,6 @@ description = """
 MapleX: A Python library for Maple file format operations, with logging and console color utilities
 """
 readme = "README.md"
-license = {file = "LICENSE"}
 license-files = ["LICENSE"]
 authors = [
     {name = "Ryuji Hazama"}
