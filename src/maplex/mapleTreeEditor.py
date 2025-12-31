@@ -556,8 +556,20 @@ class MapleTree:
             raise mExc.MapleException(e) from e
 
     #
+    ###############################
+    # Save tag line (easier to write)
+
+    def saveValue(self, tag: str, value: any, *headers: str, **kwargs) -> None:
+
+        """Save valueStr to tag in headers.\n
+        If the headers does not exist, create new headers.\n
+        Overwrte file if save == True"""
+
+        willSave = kwargs.get('save', False)
+        self.saveTagLine(tag, f"{value}", willSave, *headers)
+    #
     ###################################################
-    # Save tag line
+    # Save tag line (out of support)
 
     def saveTagLine(self, tag: str, valueStr: str, willSave: bool, *headers: str) -> None:
 
@@ -626,7 +638,21 @@ class MapleTree:
 
     #
     #############################
-    # Delete tag line
+    # Delete tag line (easier to write)
+
+    def deleteValue(self, delTag: str, *headers: str, **kwargs) -> bool:
+
+        """
+        Delete tag(delTag) from header(headers) in Maple file(delFile)\n
+        Return True if it success.
+        """
+
+        willSave = kwargs.get('save', False)
+        return self.deleteTag(delTag, willSave, *headers)
+
+    #
+    #############################
+    # Delete tag line (out of support)
 
     def deleteTag(self, delTag: str, willSave: bool = False, *headers: str) -> bool:
 
@@ -787,9 +813,200 @@ class MapleTree:
         except Exception as ex:
 
             raise mExc.MapleException(ex) from ex
+
     #
     #############################
-    # Delete header
+    # Save notes
+
+    def saveNotes(self, noteValues: list[str], *headers: str, **kwargs) -> None:
+
+        """
+        Save note values list to headers in Maple file
+        Overwrite existing note block
+        """
+
+        if len(headers) == 0:
+
+            raise mExc.MapleSyntaxException("No headers provided to save notes")
+        
+        willSave = kwargs.get('save', False)
+        headersLastIndex = len(headers) - 1
+        headers[headersLastIndex] = f"*NOTES {headers[headersLastIndex]}"
+
+        try:
+
+            isFound, eInd, headInd = self._findHeader(headers)
+
+            if not isFound:
+
+                # Create new headers
+
+                headLen = len(headers)
+
+                while headInd < headLen:
+
+                    self.fileStream.insert(eInd, f"H {headers[headInd]}\n")
+                    eInd += 1
+                    self.fileStream.insert(eInd, "E\n")
+                    headInd += 1
+
+            else:
+
+                # Delete existing note block
+
+                self.fileStream = self.fileStream[:headInd + 1] + self.fileStream[eInd:]
+                eInd = headInd + 1
+
+            # Insert note values
+
+            for noteValue in noteValues:
+
+                self.fileStream.insert(eInd, f"NTE {noteValue}\n")
+                eInd += 1
+
+            # Refresh EOF index
+
+            self.eofIndex = self._findEof(headInd + 1)
+
+            # Save?
+
+            self._mapleFormatter(willSave)
+
+        except mExc.MapleException:
+
+            raise
+
+        except Exception as ex:
+
+            raise mExc.MapleException(ex) from ex
+
+    #
+    #############################
+    # Save note
+
+    def saveNote(self, noteValue: str, *headers: str, **kwargs) -> None:
+
+        """
+        Save note value to headers in Maple file
+        Overwrite existing note block
+        """
+
+        noteValues = noteValue.split("\n")
+        self.saveNotes(noteValues, *headers, **kwargs)
+
+    #
+    #############################
+    # Get notes list
+
+    def readNotes(self, *headers: str) -> list[str]:
+
+        """
+        Read note values list from headers in Maple file
+        """
+
+        if len(headers) == 0:
+
+            raise mExc.MapleSyntaxException("No headers provided to read notes")
+        
+        headersLastIndex = len(headers) - 1
+        headers[headersLastIndex] = f"*NOTES {headers[headersLastIndex]}"
+
+        try:
+
+            isFound, eInd, headInd = self._findHeader(headers)
+
+            if not isFound:
+
+                self.__headerNotFoundExceptionHandler(headInd, headers)
+
+            noteValues = []
+
+            for line in self.fileStream[headInd + 1:eInd]:
+
+                lineTag = self.__getTag(line)
+
+                if lineTag == "H":
+
+                    # Note block cannot contain other headers
+
+                    raise mExc.InvalidMapleFileFormatException(self.fileName, "Note block contains other headers")
+
+                elif lineTag == "NTE":
+
+                    noteValues.append(self.__getValue(line))
+
+                else:
+
+                    # Ignore other tags
+
+                    continue
+
+            return noteValues
+        
+        except mExc.MapleDataNotFoundException as dnfe:
+
+            raise mExc.MapleDataNotFoundException(self.fileName) from dnfe
+        
+        except Exception as ex:
+
+            raise mExc.MapleException(ex) from ex
+
+    #
+    #############################
+    # Read notes value
+
+    def readNote(self, *headers: str) -> str:
+
+        """
+        Read note value from headers in Maple file
+        """
+
+        if len(headers) == 0:
+
+            raise mExc.MapleSyntaxException("No headers provided to read note")
+        
+        notesList = self.readNotes(*headers)
+        return "\n".join(notesList)
+    
+    #
+    #############################
+    # Delete notes
+
+    def deleteNotes(self, *headers: str, **kwargs) -> bool:
+
+        """
+        Delete note block from headers in Maple file
+        Return True if it success.
+        """
+
+        willSave = kwargs.get('save', False)
+
+        if len(headers) == 0:
+
+            raise mExc.MapleSyntaxException("No headers provided to delete notes")
+        
+        headersLastIndex = len(headers) - 1
+        headers[headersLastIndex] = f"*NOTES {headers[headersLastIndex]}"
+
+        return self.deleteHeader(headers[-1], willSave, *headers[:-1])
+
+    #
+    #############################
+    # Delete header (easier to write)
+
+    def removeHeader(self, delHead: str, *headers: str, **kwargs) -> bool:
+
+        """
+        Delete header(delHead) from headers in Maple file(delFile)\n
+        Return True if it success.
+        """
+
+        willSave = kwargs.get('save', False)
+        return self.deleteHeader(delHead, willSave, *headers)
+
+    #
+    #############################
+    # Delete header (out of support)
 
     def deleteHeader(self, delHead: str, willSave: bool = False, *Headers: str) -> bool:
 
@@ -881,12 +1098,6 @@ class MapleTree:
 ToDo list:
 
 * MapleTree *
-
-- Change willSave parameter to **kwargs
-    - saveTagLine
-    - deleteTag
-    - deleteHeader
-    [kwargs.get('willSave', False)]
 
 """
 """ * * * * * * * * * * * * * """

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MapleX"
-version = "2.2.0.dev2"
+version = "2.2.0a1"
 description = """
 MapleX: A Python library for Maple file format operations, with logging and console color utilities
 """

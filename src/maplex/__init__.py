@@ -14,7 +14,9 @@ from .mapleExceptions import (
     MapleFileLockedException,
     MapleFileNotFoundException,
     MapleHeaderNotFoundException,
+    MapleSyntaxException,
     MapleTagNotFoundException,
+    MapleTypeException,
     NotAMapleFileException
 )
 from .mapleTreeEditor import MapleTree
@@ -30,7 +32,9 @@ __all__ = [
     'MapleFileLockedException',
     'MapleFileNotFoundException',
     'MapleHeaderNotFoundException',
+    'MapleSyntaxException',
     'MapleTagNotFoundException',
+    'MapleTypeException',
     'NotAMapleFileException',
     'MapleTree',
     'Logger',
@@ -38,6 +42,6 @@ __all__ = [
     'winUnHide'
 ]
 
-__version__ = "2.0.0"
+__version__ = "2.2.0a1"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"

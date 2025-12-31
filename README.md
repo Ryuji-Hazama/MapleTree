@@ -52,11 +52,12 @@ H Data Headers
             # which is already used in the parent's header
         E
     E
-    H *NOTES
+    H *NOTES NOTES_HEADER
         # Note's header
         NTE {strimg}
         NTE ...
         # Note's main strings for the multi-line data
+        # COMMENTS IN THE "*NOTES" BLOCK WILL BE DELETED WHEN SAVE VALUE!
     E
     H #*
         This is a comment block.
@@ -126,9 +127,30 @@ E
 EOF
 ```
 
+### Notes (Multi-lined Data)
+
+`v2.2.0` or newer
+
+- You can save multi-lined data inside `H *NOTES` block.
+- You must specify the header when you save notes value.
+
+E.g.:
+
+```text
+MAPLE
+
+H *NOTES NOTES_HEADER
+    NTE YOU CAN SAVE
+    NTE MULTI-LINED DATA
+    NTE INSIDE THIS BLOCK
+E
+
+EOF
+```
+
 ### Comments
 
-`v2.1.0 or newer`
+`v2.1.0` or newer
 
 #### Comment Line
 
@@ -435,6 +457,30 @@ E
 EOF
 ```
 
+### `saveValue()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def saveValue(
+    tag: str,
+    valueString: any,
+    *headers: str,
+    **kwargs
+) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`tag`**|\*|Tag to delete|
+|**`value`**|\*|Value to save|
+|**`headers`**||Target headers|
+|**`kwargs`**||Keyword arguments|
+
+- Same as `saveTagLine()`
+- Set `save=True` to save changes to the file.
+  - Default: `save=False`
+
 ### `deleteTag()`
 
 ```python
@@ -486,6 +532,28 @@ E
 
 EOF
 ```
+
+### `deleteValue()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def deleteValue(
+    delTag: str,
+    *headers: str,
+    **kwargs
+) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`delTag`**|\*|Tag to delete|
+|**`headers`**||Target headers|
+|**`kwargs`**||Keyword arguments|
+
+- Same as `deleteTag()`
+- Set `save=True` to save changes to the file.
+  - Default: `save=False`
 
 ### `getTagValueDict()`
 
@@ -579,7 +647,7 @@ def deleteHeader(
 |--------|--------|-----|
 |**`delHead`**|\*|Deleting header|
 |**`willSave`**||Save to file flag|
-|**`headers`**||Target headers|
+|**`Headers`**||Target headers|
 
 &nbsp;&nbsp;&nbsp;&nbsp;This deletes an entire header block and its associated data, including child blocks.
 
@@ -621,6 +689,28 @@ E
 
 EOF
 ```
+
+### `removeHeader()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def removeHeader(
+    delHead: str,
+    *headers: str,
+    **kwargs
+) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`delHead`**|\*|Deleting header|
+|**`headers`**||Target headers|
+|**`kwargs`**||Keyword arguments|
+
+- Same as `deleteHeader()`
+- Set `save=True` for save data to the file.
+  - Default: `save=False`
 
 ### `getHeaders()`
 
@@ -664,6 +754,235 @@ headerList = mapleTree.getHeaders()
 
 print(headerList)
 # Outputs "['FOO', 'QUUX']"
+```
+
+### `saveNotes()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def saveNotes(
+    noteValues: list[str],
+    *headers: str,
+    **kwargs
+    ) -> None
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`noteValues`**|\*|Data to save|
+|**`headers`**|\*|Target headers|
+|**`kwargs`**||Keyword arguments|
+
+&nbsp;&nbsp;&nbsp;&nbsp;The function saves string list as a special notes block value. Set `save=True` to save the changes (Default: `save=False`)
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleTree = MapleTree("SampleData.mpl", createBasaFile=True)
+stringList = ["Hello", "there!"]
+mapleTree.saveNotes(stringList, "FOO", "BAR", save=True)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code creates a new file contains the following contents:
+
+```text
+MAPLE
+
+H FOO
+    H *NOTES BAR
+        NTE Hello
+        NTE there!
+    E
+E
+
+EOF
+```
+
+### `saveNote()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def saveNote(
+    noteValues: str,
+    *headers: str,
+    **kwargs
+    ) -> None
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`noteValues`**|\*|Data to save|
+|**`headers`**|\*|Target headers|
+|**`kwargs`**||Keyword arguments|
+
+&nbsp;&nbsp;&nbsp;&nbsp;The function saves multi-lined string as a special notes block value. Set `save=True` to save the changes (Default: `save=False`)
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleTree = MapleTree("SampleData.mpl", createBasaFile=True)
+dataString = "This is a\nmulti-lined data."
+mapleTree.saveNotes(dataString, "FOO", "BAR", save=True)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code creates a new file contains the following contents:
+
+```text
+MAPLE
+
+H FOO
+    H *NOTES BAR
+        NTE This is a
+        NTE multi-lined data.
+    E
+E
+
+EOF
+```
+
+### `readNotes()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def readNotes(
+    *headers: str
+    ) -> list[str]
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`headers`**|\*|Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Read note block value which specified by the `headers` and return as a string list.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    H *NOTES BAR
+        NTE This is a
+        NTE multi-lined data.
+    E
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.mpl")
+stringList = mapleFile.readNotes("FOO", "BAR")
+
+print(stringList)
+# Outputs "['This is a', 'multi-lined data.']"
+```
+
+### `readNote()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def readNote(
+    *headers: str
+    ) -> str
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`headers`**|\*|Target headers|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Read note block value which specified by the `headers` and return as a string.
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    H *NOTES BAR
+        NTE This is a
+        NTE multi-lined data.
+    E
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.mpl")
+dataString = mapleFile.readNote("FOO", "BAR")
+
+print(dataString)
+# Outputs "This is a
+# multi-lined data"
+```
+
+### `deleteNotes()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def deleteNotes(
+    *headers: str
+    ) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`headers`**|\*|Target headers|
+|**`kwargs`**||Keyword args|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Delete note block which specified by the `headers` and return `True` if it success. Set `save=True` to save the changes (Default: `save=False`)
+
+Sample data: `SampleData.mpl`
+
+```text
+MAPLE
+
+H FOO
+    H *NOTES BAR
+        NTE This is a
+        NTE multi-lined data.
+    E
+E
+
+EOF
+```
+
+E.g.:
+
+```python
+from maplex import MapleTree
+
+mapleFile = MapleTree("SampleData.mpl")
+stringList = mapleFile.deleteNotes("FOO", "BAR", save=True)
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;This code changes the file data like:
+
+```text
+MAPLE
+
+H FOO
+E
+
+EOF
 ```
 
 ## Logger Class
