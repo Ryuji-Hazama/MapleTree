@@ -484,7 +484,7 @@ class MapleTree:
 
                         raise mExc.InvalidMapleFileFormatException(self.fileName)
                     
-                    ind -= 1
+                    return False, lineIndex, ind
 
                 lineIndex += 1
 
@@ -830,22 +830,23 @@ class MapleTree:
             raise mExc.MapleSyntaxException("No headers provided to save notes")
         
         willSave = kwargs.get('save', False)
-        headersLastIndex = len(headers) - 1
-        headers[headersLastIndex] = f"*NOTES {headers[headersLastIndex]}"
+        headersList = list(headers)
+        headersLastIndex = len(headersList) - 1
+        headersList[headersLastIndex] = f"*NOTES {headersList[headersLastIndex]}"
 
         try:
 
-            isFound, eInd, headInd = self._findHeader(headers)
+            isFound, eInd, headInd = self._findHeader(headersList)
 
             if not isFound:
 
                 # Create new headers
 
-                headLen = len(headers)
+                headLen = len(headersList)
 
                 while headInd < headLen:
 
-                    self.fileStream.insert(eInd, f"H {headers[headInd]}\n")
+                    self.fileStream.insert(eInd, f"H {headersList[headInd]}\n")
                     eInd += 1
                     self.fileStream.insert(eInd, "E\n")
                     headInd += 1
@@ -908,16 +909,17 @@ class MapleTree:
 
             raise mExc.MapleSyntaxException("No headers provided to read notes")
         
-        headersLastIndex = len(headers) - 1
-        headers[headersLastIndex] = f"*NOTES {headers[headersLastIndex]}"
+        headersList = list(headers)
+        headersLastIndex = len(headersList) - 1
+        headersList[headersLastIndex] = f"*NOTES {headersList[headersLastIndex]}"
 
         try:
 
-            isFound, eInd, headInd = self._findHeader(headers)
+            isFound, eInd, headInd = self._findHeader(headersList)
 
             if not isFound:
 
-                self.__headerNotFoundExceptionHandler(headInd, headers)
+                self.__headerNotFoundExceptionHandler(headInd, headersList)
 
             noteValues = []
 
@@ -979,17 +981,18 @@ class MapleTree:
         Return True if it success.
         """
 
-        willSave = kwargs.get('save', False)
-
         if len(headers) == 0:
 
             raise mExc.MapleSyntaxException("No headers provided to delete notes")
+
+        willSave = kwargs.get('save', False)
         
-        headersLastIndex = len(headers) - 1
-        headers[headersLastIndex] = f"*NOTES {headers[headersLastIndex]}"
+        headersList = list(headers)
+        headersLastIndex = len(headersList) - 1
+        headersList[headersLastIndex] = f"*NOTES {headersList[headersLastIndex]}"
 
-        return self.deleteHeader(headers[-1], willSave, *headers[:-1])
-
+        return self.deleteHeader(headersList[-1], willSave, *headersList[:-1])
+    
     #
     #############################
     # Delete header (easier to write)
