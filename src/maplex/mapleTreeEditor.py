@@ -1,6 +1,7 @@
 import os.path as path
 from cryptography.fernet import Fernet
 from . import mapleExceptions as mExc
+import warnings
 
 class MapleTree:
 
@@ -442,6 +443,11 @@ class MapleTree:
             headerIndex = headers.index("#*")
             raise mExc.MapleSyntaxException(f"Cannot search inside comment block: Comment block header \"#*\" found in search headers list at index {headerIndex}")
 
+        if len(headers) == 0:
+
+            # Return root block (No headers provided)
+            return True, self.eofIndex, self.mapleIndex
+
         # Find header
 
         try:
@@ -573,9 +579,12 @@ class MapleTree:
 
     def saveTagLine(self, tag: str, valueStr: str, willSave: bool, *headers: str) -> None:
 
-        """Save valueStr to tag in headers.\n
+        """(Out of support)\n
+        Save valueStr to tag in headers.\n
         If the headers does not exist, create new headers.\n
         Overwrte file if sillSave == True"""
+
+        warnings.warn("saveTagLine is out of support. Use saveValue instead.", DeprecationWarning)
 
         # Find headers
 
@@ -656,10 +665,12 @@ class MapleTree:
 
     def deleteTag(self, delTag: str, willSave: bool = False, *headers: str) -> bool:
 
-        """
+        """(Out of support)\n
         Delete tag(delTag) from header(headers) in Maple file(delFile)\n
         Return True if it success.
         """
+
+        warnings.warn("deleteTag is out of support. Use deleteValue instead.", DeprecationWarning)
 
         try:
 
@@ -1012,6 +1023,10 @@ class MapleTree:
     # Delete header (out of support)
 
     def deleteHeader(self, delHead: str, willSave: bool = False, *Headers: str) -> bool:
+
+        """(Out of support)\n"""
+
+        warnings.warn("deleteHeader is out of support. Use removeHeader instead.", DeprecationWarning)
 
         try:
 
