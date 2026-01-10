@@ -3,7 +3,7 @@ You can use this file to check the actual output and
 Maple file modifications.
 """
 
-import maplex
+import src.maplex as maplex
 
 def runTest():
 

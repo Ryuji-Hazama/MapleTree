@@ -31,16 +31,14 @@ class Logger:
         self.pid = os.getpid()
         self.consoleColors = ConsoleColors()
         
-        # Check the OS (Windows cannot change the console color)
+        # Check the OS (Windows 10 or older cannot change the console color)
 
-        systemId = sys.platform
-
-        if systemId.startswith("win"):
+        if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
 
             self.consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
-                                               bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
-                                               bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
-                                               Bold="", Underline="", Reversed="", Reset="")
+                                            bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
+                                            bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
+                                            Bold="", Underline="", Reversed="", Reset="")
 
         #
         ############################
@@ -220,6 +218,7 @@ class Logger:
 
         # Console colors
 
+        Black = self.consoleColors.Black
         bBlack = self.consoleColors.bBlack
         Red = self.consoleColors.Red
         bRed = self.consoleColors.bRed
@@ -263,6 +262,10 @@ class Logger:
                 case self.LogLevel.FATAL:
 
                     col = Bold + Red
+
+                case self.LogLevel.NONE:
+
+                    col = Bold + Black
 
                 case _:
 
@@ -363,6 +366,16 @@ class Logger:
         '''Fatal log'''
 
         self.logWriter(self.LogLevel.FATAL, object, callerDepth=2)
+
+    #
+    ################################
+    # None
+
+    def log(self, object: any):
+
+        '''None log'''
+
+        self.logWriter(self.LogLevel.NONE, object, callerDepth=2)
 
     #
     ################################
