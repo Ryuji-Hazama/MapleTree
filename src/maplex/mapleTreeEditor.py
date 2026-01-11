@@ -286,7 +286,7 @@ class MapleTree:
     ####################################
     # Header not found exception handler
 
-    def __headerNotFoundExceptionHandler(self, headInd: int, *headers: str) -> None:
+    def __headerNotFoundExceptionHandler(self, headInd: int, headers: tuple) -> None:
 
         if headInd < 1:
 
@@ -454,7 +454,7 @@ class MapleTree:
     #################################
     # Find header
 
-    def _findHeader(self, headers: list):
+    def _findHeader(self, headers: tuple) -> tuple[bool, int, int]:
 
         """Serch header index.\n
         If the headers exist, return True, last header line index.\n
@@ -846,6 +846,10 @@ class MapleTree:
 
             return retList
         
+        except mExc.MapleHeaderNotFoundException as hnfe:
+
+            raise
+
         except mExc.MapleDataNotFoundException as dnfe:
 
             raise mExc.MapleDataNotFoundException(self.fileName) from dnfe
@@ -1151,6 +1155,7 @@ ToDo list:
     - Add parameter to control this behavior. (changeEncryptionState: bool = False)
 - Add auto-generate key function.
     - Add function to get current key.
+- Detect new lines in saveNotes and raise exception if found.
 
 """
 """ * * * * * * * * * * * * * """

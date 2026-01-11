@@ -285,7 +285,7 @@ class Logger:
 
             # If faled to export, print error info to console
 
-            print(f"{Red}[ERROR] {ex}{Reset}")
+            print(f"{Red}[ERROR][ExportLog] {ex}{Reset}")
 
         if self.maxLogSize > 0:
 
@@ -293,7 +293,7 @@ class Logger:
 
             try:
 
-                if path.getsize(self.logfile) > self.maxLogSize:
+                if path.exists(self.logfile) and path.getsize(self.logfile) > self.maxLogSize:
 
                     i = 0
                     logCopyFile = f"{self.logfile}{i}.log"
@@ -307,7 +307,7 @@ class Logger:
 
             except Exception as ex:
 
-                print(f"{Red}[ERROR] {ex}{Reset}")
+                print(f"{Red}[ERROR][GetLogSize] {ex}{Reset}")
 
     #
     ################################

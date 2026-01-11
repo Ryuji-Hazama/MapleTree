@@ -1232,6 +1232,7 @@ EOF
 |Key|Value|Description|
 |---|-----|-----------|
 |`Bold`|\\033\[1m|Bold text|
+|`Italic`|\\033\[3m|Italic text|
 |`Underline`|\\033\[4m|Underlined text|
 |`Reversed`|\\033\[7m|Reversed colors|
 |`Reset`|\\033\[0m|Reset formatting|
