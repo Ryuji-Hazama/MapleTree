@@ -41,6 +41,7 @@ class ConsoleColors(BaseModel):
     # Other formats
 
     Bold: str = "\033[1m"
+    Italic: str = "\033[3m"
     Underline: str = "\033[4m"
     Reversed: str = "\033[7m"
     Reset: str = "\033[0m"

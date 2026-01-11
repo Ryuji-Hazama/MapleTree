@@ -54,6 +54,13 @@ class MapleDataNotFoundException(MapleException):
 
         super().__init__(self.message)
 
+class MapleEncryptionNotEnabledException(MapleException):
+
+    def __init__(self, mapleFile: str = "", message: str = "File encryption is not enabled"):
+
+        self.message = f"{message}: {mapleFile}"
+        super().__init__(self.message)
+
 class MapleHeaderNotFoundException(MapleDataNotFoundException):
 
     def __init__(self, fileName = "", header: str = "", preHeader: str = "", message = ""):

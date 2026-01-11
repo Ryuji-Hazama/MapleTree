@@ -32,9 +32,9 @@ class MapleTree:
 
                     # Encrypt data
 
-                    mapleBaseString = Fernet(key).encrypt(mapleBaseString.encode()).decode()
+                    mapleBaseString = Fernet(key).encrypt(mapleBaseString.encode())
 
-                with open(fileName, "w") as f:
+                with open(fileName, "wb") as f:
 
                     f.write(mapleBaseString)
 
@@ -44,24 +44,26 @@ class MapleTree:
 
         try:
 
-            with open(fileName, "r") as f:
+            if encrypt:
 
-                if encrypt:
-
+                with open(fileName, "rb") as f:
+                        
                     # Decode encryption
                     
                     fileData = f.read()
-                    fileData = Fernet(key).decrypt(fileData.encode()).decode()
+                    fileData = Fernet(key).decrypt(fileData).decode()
                     self.fileStream = fileData.split("\n")
 
-                    # Add \r at the end of each line
+                    # Add \n at the end of each line
 
                     for i, fileLine in enumerate(self.fileStream):
 
                         self.fileStream[i] = f"{fileLine}\n"
 
-                else:
-                        
+            else:
+
+                with open(fileName, "r") as f:
+                
                     self.fileStream = f.readlines()
 
             # If the file is empty
@@ -119,16 +121,37 @@ class MapleTree:
 
     #
     ##############################
+    # Change encryption key
+
+    def changeEncryptionKey(self, newKey: bytes, save: bool = False) -> None:
+
+        """
+        Change encryption key to newKey.
+        If save is True, overwrite the file with new encryption.
+        """
+
+        if not self.ENCRYPT:
+
+            raise mExc.MapleEncryptionNotEnabledException(self.fileName)
+
+        self.KEY = newKey
+
+        if save:
+
+            self._saveToFile()
+
+    #
+    ##############################
     # Encrypt data
 
-    def __encryptData(self) -> str:
+    def __encryptData(self) -> bytes:
 
         """
         Return encrypted base_64 string
         """
 
         fileData = "".join(self.fileStream).encode()
-        fileData = Fernet(self.KEY).encrypt(fileData).decode()
+        fileData = Fernet(self.KEY).encrypt(fileData)
 
         return fileData
 
@@ -149,15 +172,21 @@ class MapleTree:
 
                 fileData = self.__encryptData()
 
+                # Save to file
+
+                with open(self.fileName, "wb") as f:
+
+                    f.write(fileData)
+
             else:
 
                 fileData = "".join(self.fileStream)
 
-            # Save to file
+                # Save to file
 
-            with open(self.fileName, "w") as f:
+                with open(self.fileName, "w") as f:
 
-                f.writelines(fileData)
+                    f.writelines(fileData)
 
         except Exception as e:
 
@@ -1116,6 +1145,12 @@ class MapleTree:
 ToDo list:
 
 * MapleTree *
+
+- In changeEncryptionKey, if encrypt is False, force to encrypt the file with new key.
+- In changeEncryptionKey, if newKey is None, save file without encryption.
+    - Add parameter to control this behavior. (changeEncryptionState: bool = False)
+- Add auto-generate key function.
+    - Add function to get current key.
 
 """
 """ * * * * * * * * * * * * * """

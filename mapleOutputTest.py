@@ -19,6 +19,7 @@ def runTest():
         WARN = "WARN"
         ERROR = "ERROR"
         FATAL = "FATAL"
+        NONE = "NONE"
 
         logger = maplex.Logger("MainLogger")
         config = maplex.MapleTree("config.mpl")
@@ -36,6 +37,7 @@ def runTest():
         loggerOutputAll.Warn("This is a WARN level message.")
         loggerOutputAll.Error("This is an ERROR level message.")
         loggerOutputAll.Fatal("This is a FATAL level message.")
+        loggerOutputAll.log("This is a NONE level message, which should not use for logging.")
 
         # Change console log level to ERROR
 
@@ -48,6 +50,7 @@ def runTest():
         loggerOutputErrorConsole.Warn("This is a WARN level message. Should NOT appear on console.")
         loggerOutputErrorConsole.Error("This is an ERROR level message. Should appear on console.")
         loggerOutputErrorConsole.Fatal("This is a FATAL level message. Should appear on console.")
+        loggerOutputErrorConsole.log("This is a NONE level message. Should appear on console.")
 
         # Change file log level to WARN
 
@@ -61,6 +64,7 @@ def runTest():
         loggerOutputWarnFile.Warn("This is a WARN level message. Should appear in file.")
         loggerOutputWarnFile.Error("This is an ERROR level message. Should appear in file.")
         loggerOutputWarnFile.Fatal("This is a FATAL level message. Should appear in file.")
+        loggerOutputWarnFile.log("This is a NONE level message. Should appear in file.")
 
         # Restore original settings
 
@@ -77,6 +81,7 @@ def runTest():
         loggerForceLevel.Warn("This is a WARN level message. Should appear in only console.")
         loggerForceLevel.Error("This is an ERROR level message. Should appear in both console and file.")
         loggerForceLevel.Fatal("This is a FATAL level message. Should appear in both console and file.")
+        loggerForceLevel.log("This is a NONE level message. Should appear in both console and file.")
 
         # Show error message and stack trace
 

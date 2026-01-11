@@ -10,6 +10,7 @@ from .mapleExceptions import (
     KeyEmptyException,
     MapleDataNotFoundException,
     MapleException,
+    MapleEncryptionNotEnabledException,
     MapleFileEmptyException,
     MapleFileLockedException,
     MapleFileNotFoundException,
@@ -27,6 +28,7 @@ __all__ = [
     'InvalidMapleFileFormatException',
     'KeyEmptyException',
     'MapleDataNotFoundException',
+    'MapleEncryptionNotEnabledException',
     'MapleException',
     'MapleFileEmptyException',
     'MapleFileLockedException',
@@ -42,6 +44,6 @@ __all__ = [
     'winUnHide'
 ]
 
-__version__ = "2.2.0a2"
+__version__ = "2.2.0b1"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"

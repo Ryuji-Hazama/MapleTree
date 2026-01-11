@@ -5,8 +5,17 @@
 &nbsp;&nbsp;&nbsp;&nbsp;***You can install the package from pip with the following command.***
 
 ```bash
-pip install maplex
+pip install MapleX
 ```
+
+## Table of Contents
+
+> - [Maple File](#maple-file)
+> - [MapleTree Class](#mapletree-class)
+> - [Logger Class](#logger-class)
+> - [Exceptions](#exceptions)
+> - [Console Colors](#console-colors)
+> - [Install MapleX](#install-maplex)
 
 ## Maple File
 
@@ -293,6 +302,8 @@ EOF
 &nbsp;&nbsp;&nbsp;&nbsp;If `encrypt=True`, the instance decrypts data when it is read, and encrypts data when it is saved.  
 &nbsp;&nbsp;&nbsp;&nbsp;You need to specify the byte key when you use encryption, and the file must be encrypted.
 
+:warning: **The key must be 32 url-safe base64-encoded bytes**
+
 ```python
 mapleFile = MapleTree("FileName.mpl", encrypt=True, key=key)
 ```
@@ -364,7 +375,32 @@ def saveTagLine(
 |**`willSave`**|\*|Save to file flag|
 |**`headers`**||Target headers|
 
-&nbsp;&nbsp;&nbsp;&nbsp;`saveTagLine` saves a value with a tag in a header block specified by the parameter.
+&nbsp;&nbsp;&nbsp;&nbsp;Outdated from `v2.2.0`
+
+### `saveValue()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def saveValue(
+    tag: str,
+    valueString: any,
+    *headers: str,
+    **kwargs
+) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`tag`**|\*|Target tag|
+|**`value`**|\*|Value to save|
+|**`headers`**||Target headers|
+|**`kwargs`**||Keyword arguments|
+
+&nbsp;&nbsp;&nbsp;&nbsp;`saveValue` saves a value with a tag in a header block specified by the parameter.
+
+- Set `save=True` to save changes to the file.
+  - Default: `save=False`
 
 E.g.:
 
@@ -372,7 +408,7 @@ E.g.:
 from maplex import MapleTree
 
 mapleFile = MapleTree("SampleData.mpl", createBaseFile=True)
-mapleFile.saveTagLine("TAG", "VALUE", True, "FOO")
+mapleFile.saveTagLine("TAG", "VALUE", "FOO", save=True)
 
 ```
 
@@ -388,12 +424,12 @@ EOF
 
 #### Update a Buffer Content
 
-&nbsp;&nbsp;&nbsp;&nbsp;If `willSave=False`, the buffer content will be updated, but no update on physical file content.
+&nbsp;&nbsp;&nbsp;&nbsp;If `save=False` (or not specified), the buffer content will be updated, but no update on physical file content.
 
 E.g.:
 
 ```python
-mapleFile.saveTagLine("TAG", "NEW VALUE", False, "FOO")
+mapleFile.saveTagLine("TAG", "NEW VALUE", "FOO")
 ```
 
 &nbsp;&nbsp;&nbsp;&nbsp;This code changes the contents on buffer like:
@@ -418,10 +454,10 @@ EOF
 
 #### Update and Save Changes
 
-&nbsp;&nbsp;&nbsp;&nbsp;If `willSave=True`, all the changes to the buffer will be saved.
+&nbsp;&nbsp;&nbsp;&nbsp;If `save=True`, all the changes to the buffer will be saved.
 
 ```python
-mapleFile.saveTagLine("BAR", "ANOTHER VALUE", True, "FOO")
+mapleFile.saveTagLine("BAR", "ANOTHER VALUE", "FOO", save=True)
 ```
 
 &nbsp;&nbsp;&nbsp;&nbsp;This code changes the contents in the file like:
@@ -440,10 +476,10 @@ EOF
 &nbsp;&nbsp;&nbsp;&nbsp;If the block and/or the header(s) specified with the parameters do not exist in the data, the function creates the new header block(s) and the tag and saves the value.
 
 ```python
-mapleFile.saveTagLine("TAZ", "NEW HEADER AND TAG", False, "NEW_HEADER")
+mapleFile.saveTagLine("TAZ", "NEW HEADER AND TAG", "NEW_HEADER")
 ```
 
-&nbsp;&nbsp;&nbsp;&nbsp;This code will change the data like:
+&nbsp;&nbsp;&nbsp;&nbsp;This code will change the buffer data like:
 
 ```text
 MAPLE
@@ -456,30 +492,6 @@ H NEW_HEADER
 E
 EOF
 ```
-
-### `saveValue()`
-
-&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
-
-```python
-def saveValue(
-    tag: str,
-    valueString: any,
-    *headers: str,
-    **kwargs
-) -> bool
-```
-
-|Property|Required|Value|
-|--------|--------|-----|
-|**`tag`**|\*|Tag to delete|
-|**`value`**|\*|Value to save|
-|**`headers`**||Target headers|
-|**`kwargs`**||Keyword arguments|
-
-- Same as `saveTagLine()`
-- Set `save=True` to save changes to the file.
-  - Default: `save=False`
 
 ### `deleteTag()`
 
@@ -497,7 +509,30 @@ def deleteTag(
 |**`willSave`**||Save to file flag|
 |**`headers`**||Target headers|
 
+&nbsp;&nbsp;&nbsp;&nbsp;Outdated from `v2.2.0`
+
+### `deleteValue()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def deleteValue(
+    delTag: str,
+    *headers: str,
+    **kwargs
+) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`delTag`**|\*|Tag to delete|
+|**`headers`**||Target headers|
+|**`kwargs`**||Keyword arguments|
+
 &nbsp;&nbsp;&nbsp;&nbsp;Delete a tag and its value.
+
+- Set `save=True` to save changes to the file.
+  - Default: `save=False`
 
 Sample data: `SampleData.mpl`
 
@@ -518,7 +553,7 @@ E.g.:
 from maplex import MapleTree
 
 mapleFile = MapleTree("SampleData.mpl")
-mapleFile.deleteTag("BAR", True, "FOO")
+mapleFile.deleteTag("BAR", "FOO", save=True)
 ```
 
 &nbsp;&nbsp;&nbsp;&nbsp;The file data will be changed like:
@@ -532,28 +567,6 @@ E
 
 EOF
 ```
-
-### `deleteValue()`
-
-&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
-
-```python
-def deleteValue(
-    delTag: str,
-    *headers: str,
-    **kwargs
-) -> bool
-```
-
-|Property|Required|Value|
-|--------|--------|-----|
-|**`delTag`**|\*|Tag to delete|
-|**`headers`**||Target headers|
-|**`kwargs`**||Keyword arguments|
-
-- Same as `deleteTag()`
-- Set `save=True` to save changes to the file.
-  - Default: `save=False`
 
 ### `getTagValueDict()`
 
@@ -649,7 +662,30 @@ def deleteHeader(
 |**`willSave`**||Save to file flag|
 |**`Headers`**||Target headers|
 
+&nbsp;&nbsp;&nbsp;&nbsp;Outdated from `v2.2.0`
+
+### `removeHeader()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def removeHeader(
+    delHead: str,
+    *headers: str,
+    **kwargs
+) -> bool
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`delHead`**|\*|Deleting header|
+|**`headers`**||Target headers|
+|**`kwargs`**||Keyword arguments|
+
 &nbsp;&nbsp;&nbsp;&nbsp;This deletes an entire header block and its associated data, including child blocks.
+
+- Set `save=True` for save data to the file.
+  - Default: `save=False`
 
 Sample data: `SampleData.mpl`
 
@@ -675,7 +711,7 @@ E.g.:
 from maplex import MapleTree
 
 mapleTree = MapleTree("SampleData.mpl")
-mapleTree.deleteHeader("FOO", True)
+mapleTree.deleteHeader("FOO", save=True)
 ```
 
 &nbsp;&nbsp;&nbsp;&nbsp;This code changes the data like:
@@ -689,28 +725,6 @@ E
 
 EOF
 ```
-
-### `removeHeader()`
-
-&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
-
-```python
-def removeHeader(
-    delHead: str,
-    *headers: str,
-    **kwargs
-) -> bool
-```
-
-|Property|Required|Value|
-|--------|--------|-----|
-|**`delHead`**|\*|Deleting header|
-|**`headers`**||Target headers|
-|**`kwargs`**||Keyword arguments|
-
-- Same as `deleteHeader()`
-- Set `save=True` for save data to the file.
-  - Default: `save=False`
 
 ### `getHeaders()`
 
@@ -985,6 +999,26 @@ E
 EOF
 ```
 
+### `changeEncryptionKey()`
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v2.2.0` or newer
+
+```python
+def changeEncryptionKey(
+    newKey: bytes,
+    save: bool = False
+    ) -> None
+```
+
+|Property|Required|Value|
+|--------|--------|-----|
+|**`newKey`**|\*|New encryption key|
+|**`save`**||Save to file flag|
+
+&nbsp;&nbsp;&nbsp;&nbsp;Changing file encryption key. If `save=True`, encrypt the buffer data with new key and save to the file.
+
+:warning: **The key must be 32 url-safe base64-encoded bytes**
+
 ## Logger Class
 
 &nbsp;&nbsp;&nbsp;&nbsp;Logger is a logging object for Python applications. It outputs application logs to log files and to standard output.
@@ -1067,8 +1101,9 @@ def ShowError(
 
 - You can configure log settings with `config.mpl`.
 - If `config.mpl` does not exist, the instance auto-generates the file.
+- Instance uses the parameter values to auto-generate configuration file, or using default value if it was not specified.
 
-Auto-generated `config.mpl`:
+Auto-generated `config.mpl` (parameters not specified):
 
 ```text
 MAPLE
@@ -1114,6 +1149,10 @@ EOF
 ### `class MapleDataNotFoundException(MapleException)`
 
 &nbsp;&nbsp;&nbsp;&nbsp;This occurs when the data is not found in the file.
+
+### `MapleEncryptionNotEnabledException(MapleException)`
+
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when try to encrypt maple data, but the encryption flag is `False`.
 
 ### `class MapleHeaderNotFoundException(MapleDataNotFoundException)`
 
@@ -1197,12 +1236,12 @@ EOF
 |`Reversed`|\\033\[7m|Reversed colors|
 |`Reset`|\\033\[0m|Reset formatting|
 
-## Install maplex :inbox_tray:
+## Install MapleX
 
 ### From PyPI
 
 ```bash
-[python[3] -m] pip install maplex [--break-system-packages]
+[python[3] -m] pip install MapleX [--break-system-packages]
 ```
 
 ### Manual Installation

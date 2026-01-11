@@ -52,15 +52,15 @@ class Logger:
 
                 with open(configFile, "w") as f:
 
-                    f.write("MAPLE\n"
-                            "H *LOG_SETTINGS\n"
-                            "    CMD INFO\n"
-                            "    FLE INFO\n"
-                            "    # TRACE, DEBUG, INFO, WARN,\n"
-                            "    # ERROR, FATAL, NONE\n"
-                            "    MAX 3\n"
-                            "    OUT logs\n"
-                            "E\nEOF")
+                    f.write(f"MAPLE\n"
+                            f"H *LOG_SETTINGS\n"
+                            f"    CMD {cmdLogLevel if cmdLogLevel is not None else 'INFO'}\n"
+                            f"    FLE {fileLogLevel if fileLogLevel is not None else 'INFO'}\n"
+                            f"    # TRACE, DEBUG, INFO, WARN,\n"
+                            f"    # ERROR, FATAL, NONE\n"
+                            f"    MAX {maxLogSize if maxLogSize is not None else 3}\n"
+                            f"    OUT {workingDirectory if workingDirectory is not None else 'logs'}\n"
+                            f"E\nEOF")
                 
             maple = MapleTree(configFile)
 
@@ -225,6 +225,7 @@ class Logger:
         Green = self.consoleColors.Green
         bLightBlue = self.consoleColors.bLightBlue
         Bold = self.consoleColors.Bold
+        Italic = self.consoleColors.Italic
         Reset = self.consoleColors.Reset
 
         try:
@@ -265,7 +266,7 @@ class Logger:
 
                 case self.LogLevel.NONE:
 
-                    col = Bold + Black
+                    col = Bold + Italic + Black
 
                 case _:
 
@@ -406,6 +407,10 @@ ToDo list:
 
 * Logger *
 
+- Create getLogger function
+- Add option to file output mode (append/overwrite/daily)
+- Add option to set date format
+- Add set* functions
 - Configure log format in config file
 
 """

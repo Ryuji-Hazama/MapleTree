@@ -4,8 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MapleX"
-version = "2.2.0a2"
-description = """
+version = "2.2.0b1"
+description = """A Python library for Maple file format operations, with logging and console color utilities
+
 # MapleX
 
 A Python library for Maple file format operations, with logging and console color utilities
@@ -21,7 +22,7 @@ Logger is a versatile logging utility that allows developers to log messages wit
 readme = "README.md"
 license-files = ["LICENSE"]
 authors = [
-    {name = "Ryuji Hazama"}
+    {name = "RyujiHazama"}
 ]
 dependencies = [
     "cryptography>=46.0.3",
