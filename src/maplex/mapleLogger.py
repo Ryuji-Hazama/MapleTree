@@ -13,7 +13,7 @@ class Logger:
 
     def __init__(
             self,
-            func: str = "",
+            func: str | None = None,
             workingDirectory: str | None = None,
             cmdLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
             fileLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
@@ -101,13 +101,22 @@ class Logger:
         ############################
         # Set function name
 
-        if func != "":
+        caller = inspect.currentframe().f_back.f_globals.get("__name__", "")
+
+        if func in {None, ""}:
+
+            self.func = ""
+            self.callerName = ""
+        
+        elif func != caller:
 
             self.func = f"[{func}]"
+            self.callerName = ""
 
         else:
 
             self.func = ""
+            self.callerName = f"{caller}."
 
         #
         ############################
@@ -279,7 +288,7 @@ class Logger:
         
             if loglevel >= self.fileLogLevel:
                 with open(self.logfile, "a") as f:
-                    print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {callerFunc}({callerLine}) {message}", file=f)
+                    print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine}) {message}", file=f)
 
         except Exception as ex:
 
@@ -313,7 +322,7 @@ class Logger:
     ################################
     # Trace
 
-    def Trace(self, object: any):
+    def trace(self, object: any):
 
         '''Trace log'''
 
@@ -322,7 +331,7 @@ class Logger:
     ################################
     # Debug
 
-    def Debug(self, object: any):
+    def debug(self, object: any):
 
         '''Debug log'''
 
@@ -332,7 +341,7 @@ class Logger:
     ################################
     # Info
 
-    def Info(self, object: any):
+    def info(self, object: any):
 
         '''Info log'''
 
@@ -342,7 +351,7 @@ class Logger:
     ################################
     # Warn
 
-    def Warn(self, object: any):
+    def warn(self, object: any):
 
         '''Warn log'''
 
@@ -352,7 +361,7 @@ class Logger:
     ################################
     # Error
 
-    def Error(self, object: any):
+    def error(self, object: any):
 
         '''Error log'''
 
@@ -362,7 +371,7 @@ class Logger:
     ################################
     # Fatal
 
-    def Fatal(self, object: any):
+    def fatal(self, object: any):
 
         '''Fatal log'''
 
@@ -401,6 +410,26 @@ class Logger:
         self.logWriter(logLevel, ex, callerDepth=2)
         self.logWriter(logLevel, traceback.format_exc(), callerDepth=2)
 
+""" From v2.3.0
+_loggers: dict[str, Logger] = {}
+
+# Get or create a Logger instance
+
+def getLogger(name: str = "", **kwargs) -> Logger:
+    """"""
+    Get or create a Logger instance.
+    
+    Args:
+        name: Logger name (usually __name__ of the calling module)
+        **kwargs: Arguments to pass to Logger constructor if creating new instance
+    
+    Returns:
+        Logger instance
+    """"""
+    if name not in _loggers:
+        _loggers[name] = Logger(func=name, **kwargs)
+    return _loggers[name]
+"""
 """ * * * * * * * * * * * * * """
 """
 ToDo list:

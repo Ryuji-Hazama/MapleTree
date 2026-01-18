@@ -58,15 +58,15 @@ H Data Headers
         H Sub Data Header
             Tags Propaties
             # You can use the same tag in the child header,
-            # which is already used in the parent's header
+            # which is already used in the parents' header
         E
     E
     H *NOTES NOTES_HEADER
         # Note's header
         NTE {strimg}
         NTE ...
-        # Note's main strings for the multi-line data
-        # COMMENTS IN THE "*NOTES" BLOCK WILL BE DELETED WHEN SAVE VALUE!
+        # Notes' main strings for the multi-line data
+        # COMMENTS IN THE "*NOTES" BLOCK WILL BE DELETED WHEN SAVING!
     E
     H #*
         This is a comment block.
@@ -141,7 +141,7 @@ EOF
 `v2.2.0` or newer
 
 - You can save multi-lined data inside `H *NOTES` block.
-- You must specify the header when you save notes value.
+- You must specify the header when you save the notes value.
 
 E.g.:
 
@@ -684,7 +684,7 @@ def removeHeader(
 
 &nbsp;&nbsp;&nbsp;&nbsp;This deletes an entire header block and its associated data, including child blocks.
 
-- Set `save=True` for save data to the file.
+- Set `save=True` for saving data to the file.
   - Default: `save=False`
 
 Sample data: `SampleData.mpl`
@@ -788,7 +788,7 @@ def saveNotes(
 |**`headers`**|\*|Target headers|
 |**`kwargs`**||Keyword arguments|
 
-&nbsp;&nbsp;&nbsp;&nbsp;The function saves string list as a special notes block value. Set `save=True` to save the changes (Default: `save=False`)
+&nbsp;&nbsp;&nbsp;&nbsp;The function saves a string list as a special notes block value. Set `save=True` to save the changes (Default: `save=False`)
 
 E.g.:
 
@@ -800,7 +800,7 @@ stringList = ["Hello", "there!"]
 mapleTree.saveNotes(stringList, "FOO", "BAR", save=True)
 ```
 
-&nbsp;&nbsp;&nbsp;&nbsp;This code creates a new file contains the following contents:
+&nbsp;&nbsp;&nbsp;&nbsp;This code creates a new file that contains the following contents:
 
 ```text
 MAPLE
@@ -833,7 +833,7 @@ def saveNote(
 |**`headers`**|\*|Target headers|
 |**`kwargs`**||Keyword arguments|
 
-&nbsp;&nbsp;&nbsp;&nbsp;The function saves multi-lined string as a special notes block value. Set `save=True` to save the changes (Default: `save=False`)
+&nbsp;&nbsp;&nbsp;&nbsp;The function saves a multi-lined string as a special notes block value. Set `save=True` to save the changes (Default: `save=False`)
 
 E.g.:
 
@@ -845,7 +845,7 @@ dataString = "This is a\nmulti-lined data."
 mapleTree.saveNotes(dataString, "FOO", "BAR", save=True)
 ```
 
-&nbsp;&nbsp;&nbsp;&nbsp;This code creates a new file contains the following contents:
+&nbsp;&nbsp;&nbsp;&nbsp;This code creates a new file that contains the following contents:
 
 ```text
 MAPLE
@@ -874,7 +874,7 @@ def readNotes(
 |--------|--------|-----|
 |**`headers`**|\*|Target headers|
 
-&nbsp;&nbsp;&nbsp;&nbsp;Read note block value which specified by the `headers` and return as a string list.
+&nbsp;&nbsp;&nbsp;&nbsp;Read note block value, which is specified by the `headers`, and return as a string list.
 
 Sample data: `SampleData.mpl`
 
@@ -917,7 +917,7 @@ def readNote(
 |--------|--------|-----|
 |**`headers`**|\*|Target headers|
 
-&nbsp;&nbsp;&nbsp;&nbsp;Read note block value which specified by the `headers` and return as a string.
+&nbsp;&nbsp;&nbsp;&nbsp;Read note block value, which specified by the `headers`, and return as a string.
 
 Sample data: `SampleData.mpl`
 
@@ -944,7 +944,7 @@ dataString = mapleFile.readNote("FOO", "BAR")
 
 print(dataString)
 # Outputs "This is a
-# multi-lined data"
+# multi-lined data."
 ```
 
 ### `deleteNotes()`
@@ -962,7 +962,7 @@ def deleteNotes(
 |**`headers`**|\*|Target headers|
 |**`kwargs`**||Keyword args|
 
-&nbsp;&nbsp;&nbsp;&nbsp;Delete note block which specified by the `headers` and return `True` if it success. Set `save=True` to save the changes (Default: `save=False`)
+&nbsp;&nbsp;&nbsp;&nbsp;Delete note block which specified by the `headers` and return `True` if it succeeds. Set `save=True` to save the changes (Default: `save=False`)
 
 Sample data: `SampleData.mpl`
 
@@ -1015,7 +1015,7 @@ def changeEncryptionKey(
 |**`newKey`**|\*|New encryption key|
 |**`save`**||Save to file flag|
 
-&nbsp;&nbsp;&nbsp;&nbsp;Changing file encryption key. If `save=True`, encrypt the buffer data with new key and save to the file.
+&nbsp;&nbsp;&nbsp;&nbsp;Changing file encryption key. If `save=True`, encrypt the buffer data with the new key and save to the file.
 
 :warning: **The key must be 32 url-safe base64-encoded bytes**
 
@@ -1051,7 +1051,7 @@ def changeEncryptionKey(
 from maplex import Logger
 
 logger = Logger("FunctionName")
-logger.Info("Hello there!")
+logger.info("Hello there!")
 ```
 
 This outputs:
@@ -1101,7 +1101,7 @@ def ShowError(
 
 - You can configure log settings with `config.mpl`.
 - If `config.mpl` does not exist, the instance auto-generates the file.
-- Instance uses the parameter values to auto-generate configuration file, or using default value if it was not specified.
+- Instance uses the parameter values to auto-generate a configuration file, or uses the default value if it was not specified.
 
 Auto-generated `config.mpl` (parameters not specified):
 
@@ -1125,8 +1125,8 @@ EOF
 |**`MAX`**|Log file max size (MB)|
 |**`OUT`**|Log file output path|
 
-- To disable the log output, set log level to `NONE`.
-- You can use a `float` number for the file max size (E.g. `2.5` for `2.5MB`)
+- To disable the log output, set the log level to `NONE`.
+- You can use a `float` number for the file max size (E.g., `2.5` for `2.5MB`)
 
 ## Exceptions
 
@@ -1136,11 +1136,11 @@ EOF
 
 ### `class MapleFileNotFoundException(MapleException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file which specified at the instance initialization was not found.
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file that was specified at the instance initialization was not found.
 
 ### `class KeyEmptyException(MapleException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when `encrypt=True` at the instance initialization, but the key for encryption is missing (`None` or empty).
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when `encrypt=True` is used at the instance initialization, but the key for encryption is missing (`None` or empty).
 
 ### `class MapleFileLockedException(MapleException)`
 
@@ -1152,7 +1152,7 @@ EOF
 
 ### `MapleEncryptionNotEnabledException(MapleException)`
 
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when try to encrypt maple data, but the encryption flag is `False`.
+&nbsp;&nbsp;&nbsp;&nbsp;This occurs when trying to encrypt Maple data, but the encryption flag is `False`.
 
 ### `class MapleHeaderNotFoundException(MapleDataNotFoundException)`
 
@@ -1257,3 +1257,9 @@ EOF
 or
 
 &nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] setup.py sdist bdist_wheel`
+
+### Unit test
+
+```bash
+python[3] -m unittest discover -s tests
+```

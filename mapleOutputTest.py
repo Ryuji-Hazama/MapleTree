@@ -94,6 +94,9 @@ def runTest():
             logger.ShowError(e, "An exception occurred during division. (Error level message with stack trace)")
             logger.ShowError(e, "An exception occurred during division. (Fatal level message with stack trace)", True)
 
+        noFucnLogger = maplex.Logger()
+        noFucnLogger.Info("This is a log message from a logger without function name.")
+
         logger.Info("Maple Output Test Completed")
 
     except Exception as e:

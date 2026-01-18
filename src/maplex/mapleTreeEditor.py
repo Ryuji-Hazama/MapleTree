@@ -33,8 +33,13 @@ class MapleTree:
                     # Encrypt data
 
                     mapleBaseString = Fernet(key).encrypt(mapleBaseString.encode())
+                    writeMode = "wb"
 
-                with open(fileName, "wb") as f:
+                else:
+
+                    writeMode = "w"
+
+                with open(fileName, writeMode) as f:
 
                     f.write(mapleBaseString)
 
