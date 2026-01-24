@@ -1,6 +1,7 @@
 include LICENSE
 include README.md
 include release/*
+recursive-include tests *.py
 
 exclude .gitignore
 exclude mapleOutputTest.py

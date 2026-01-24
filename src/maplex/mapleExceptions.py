@@ -144,3 +144,31 @@ class MapleTypeException(MapleSyntaxException):
             self.message = message
 
         super().__init__(self.message)
+
+class MapleValueException(MapleException):
+
+    def __init__(self, message: str = "Maple value error"):
+
+        self.message = message
+        super().__init__(self.message)
+
+class MapleLoggerException(MapleException):
+
+    def __init__(self, message: str = "Maple logger error"):
+
+        self.message = message
+        super().__init__(self.message)
+
+class MapleInvalidLoggerLevelException(MapleLoggerException):
+
+    def __init__(self, loggerLevel: str = "", message: str = ""):
+
+        if message == "":
+
+            self.message = f"Invalid logger level [{loggerLevel}]"
+
+        else:
+
+            self.message = f"{message}: Caused by invalid logger level [{loggerLevel}]"
+
+        super().__init__(self.message)

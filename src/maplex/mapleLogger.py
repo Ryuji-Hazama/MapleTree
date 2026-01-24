@@ -8,6 +8,7 @@ from enum import IntEnum
 from typing import Literal
 from .mapleTreeEditor import MapleTree
 from .mapleColors import ConsoleColors
+from .mapleExceptions import *
 
 class Logger:
 
@@ -17,7 +18,8 @@ class Logger:
             workingDirectory: str | None = None,
             cmdLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
             fileLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
-            maxLogSize: float | None = None
+            maxLogSize: float | None = None,
+            fileMode: Literal["append", "overwrite", "daily"] | None = None
         ) -> None:
 
         """
@@ -30,6 +32,7 @@ class Logger:
         self.CWD = os.getcwd()
         self.pid = os.getpid()
         self.consoleColors = ConsoleColors()
+        self.fileMode = "append" if fileMode is None else fileMode
         
         # Check the OS (Windows 10 or older cannot change the console color)
 
@@ -88,7 +91,16 @@ class Logger:
 
             self.CWD = path.join(os.getcwd(), self.CWD)
 
-        self.logfile = path.join(self.CWD, f"log_{datetime.now():%Y%m%d}.log")
+        #############################
+        # Set log file name
+
+        if fileMode == "daily":
+
+            self.logfile = path.join(self.CWD, f"log_{datetime.now():%Y%m%d}.log")
+        
+        else:
+
+            self.logfile = path.join(self.CWD, "AppLog.log")
 
         #
         ############################
@@ -204,6 +216,94 @@ class Logger:
         NONE = 6
 
     #
+    #####################
+    # Getters and Setters
+
+    def getLogFile(self) -> str:
+
+        '''Get log file path'''
+
+        return self.logfile
+    
+    def setLogFile(self, logfile: str) -> None:
+
+        '''Set log file path'''
+
+        self.logfile = logfile
+
+    def getConsoleLogLevel(self) -> LogLevel:
+
+        '''Get console log level'''
+
+        return self.consoleLogLevel
+
+    def setConsoleLogLevel(self, loglevel: any) -> None:
+
+        '''Set console log level'''
+
+        try:
+
+            self.consoleLogLevel = self.toLogLevel(loglevel)
+
+        except MapleInvalidLoggerLevelException as ex:
+
+            raise MapleInvalidLoggerLevelException(loglevel, "Invalid console log level. Log level must be a string or integer corresponding to a valid log level.") from ex
+        
+    def getFileLogLevel(self) -> LogLevel:
+
+        '''Get file log level'''
+
+        return self.fileLogLevel
+    
+    def setFileLogLevel(self, loglevel: any) -> None:
+
+        '''Set file log level'''
+
+        try:
+
+            self.fileLogLevel = self.toLogLevel(loglevel)
+
+        except MapleInvalidLoggerLevelException as ex:
+
+            raise MapleInvalidLoggerLevelException(loglevel, "Invalid file log level. Log level must be a string or integer corresponding to a valid log level.") from ex
+
+    #
+    ####################
+    # Convert to log level
+
+    def toLogLevel(self, loglevel: any) -> LogLevel:
+
+        '''Convert to log level'''
+
+        if type(loglevel) is str:
+
+            loglevelClass = self.isLogLevel(loglevel)
+
+            if loglevelClass == -1:
+
+                raise MapleInvalidLoggerLevelException(loglevel, f"Invalid logger level string")
+
+        elif type(loglevel) is int:
+
+            if loglevel < 0 or loglevel > len(self.LogLevel) - 1:
+
+                raise MapleInvalidLoggerLevelException(loglevel, f"Invalid logger level value")
+                
+            else:
+
+                loglevelClass = self.LogLevel(loglevel)
+
+        elif type(loglevel) is not self.LogLevel:
+
+            raise MapleInvalidLoggerLevelException(loglevel,f"Invalid logger level type: {type(loglevel)}")
+
+        else:
+
+            loglevelClass = loglevel
+
+        return loglevelClass
+
+    #
     ################
     # Check log level
 
@@ -292,9 +392,7 @@ class Logger:
 
         except Exception as ex:
 
-            # If faled to export, print error info to console
-
-            print(f"{Red}[ERROR][ExportLog] {ex}{Reset}")
+            raise MapleLoggerException(f"Failed to write log: {ex}") from ex
 
         if self.maxLogSize > 0:
 
@@ -304,19 +402,38 @@ class Logger:
 
                 if path.exists(self.logfile) and path.getsize(self.logfile) > self.maxLogSize:
 
+                    # Rename log file
+
+                    if self.fileMode == "overwrite":
+
+                        if path.isfile(f"{self.logfile}_old.log"):
+
+                            os.remove(f"{self.logfile}_old.log")
+
+                        os.rename(self.logfile, f"{self.logfile}_old.log")
+                        return
+
+                    elif self.fileMode == "daily":
+
+                        dateStr = ""
+
+                    else:
+
+                        dateStr = f"_{datetime.now():%Y%m%d_%H%M%S}"
+                    
                     i = 0
-                    logCopyFile = f"{self.logfile}{i}.log"
+                    logCopyFile = f"{self.logfile}{dateStr}{i}.log"
 
                     while path.isfile(logCopyFile):
 
                         i += 1
-                        logCopyFile = f"{self.logfile}{i}.log"
+                        logCopyFile = f"{self.logfile}{dateStr}{i}.log"
 
                     os.rename(self.logfile, logCopyFile)
 
             except Exception as ex:
 
-                print(f"{Red}[ERROR][GetLogSize] {ex}{Reset}")
+                raise MapleLoggerException(f"Failed to rotate log file: {ex}") from ex
 
     #
     ################################
@@ -410,13 +527,12 @@ class Logger:
         self.logWriter(logLevel, ex, callerDepth=2)
         self.logWriter(logLevel, traceback.format_exc(), callerDepth=2)
 
-""" From v2.3.0
 _loggers: dict[str, Logger] = {}
 
 # Get or create a Logger instance
 
 def getLogger(name: str = "", **kwargs) -> Logger:
-    """"""
+    """
     Get or create a Logger instance.
     
     Args:
@@ -425,19 +541,18 @@ def getLogger(name: str = "", **kwargs) -> Logger:
     
     Returns:
         Logger instance
-    """"""
+    """
+
     if name not in _loggers:
         _loggers[name] = Logger(func=name, **kwargs)
     return _loggers[name]
-"""
+
 """ * * * * * * * * * * * * * """
 """
 ToDo list:
 
 * Logger *
 
-- Create getLogger function
-- Add option to file output mode (append/overwrite/daily)
 - Add option to set date format
 - Add set* functions
 - Configure log format in config file

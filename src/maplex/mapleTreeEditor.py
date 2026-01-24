@@ -111,6 +111,49 @@ class MapleTree:
         except Exception as ex:
 
             raise mExc.MapleException(ex) from ex
+
+    #
+    ##############################
+    # Getters and setters
+
+    def getFilePath(self) -> str:
+
+        """Return current file path."""
+
+        return self.fileName
+
+    def isEncrypted(self) -> bool:
+
+        """Return if the file is encrypted."""
+
+        return self.ENCRYPT
+    
+    def setEncryption(self, encrypt: bool) -> None:
+
+        """Set encryption state.
+        If encrypt is True, enable encryption.
+        If encrypt is False, disable encryption.
+        Note: This does not change the file encryption state.
+        Use changeEncryptionKey to change file encryption state.
+        """
+
+        self.ENCRYPT = encrypt
+
+    def getEncryptionKey(self) -> bytes | None:
+
+        """Return current encryption key."""
+
+        return self.KEY
+    
+    def setEncryptionKey(self, key: bytes) -> None:
+
+        """Set encryption key.
+        key must be base_64 bytes.
+        This function does not change the file encryption state.
+        Use changeEncryptionKey with newKey and set save=True to change file encryption state.
+        """
+
+        self.KEY = key
         
     #
     ##############################

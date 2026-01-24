@@ -118,6 +118,28 @@ class TestMapleTreeBasicOperations(unittest.TestCase):
         with self.assertRaises((MapleHeaderNotFoundException, MapleTagNotFoundException)):
             maple.readMapleTag("TAG1", "WRONG_HEADER")
 
+    def test_getters_and_setters(self):
+        """Test getters and setters for file properties"""
+        maple = MapleTree(self.test_file, createBaseFile=True)
+        
+        # Test file path getter
+        self.assertEqual(maple.getFilePath(), self.test_file)
+        
+        # Test encryption status
+        self.assertFalse(maple.isEncrypted())
+        
+        # Test setting and getting encryption (without actual encryption)
+        maple.setEncryption(True)
+        self.assertTrue(maple.isEncrypted())
+        
+        maple.setEncryption(False)
+        self.assertFalse(maple.isEncrypted())
+        
+        # Test setting and getting encryption key
+        test_key = base64.urlsafe_b64encode(os.urandom(32))
+        maple.setEncryptionKey(test_key)
+        self.assertEqual(maple.getEncryptionKey(), test_key)
+
 
 class TestMapleTreeNotes(unittest.TestCase):
     """Test MapleTree notes functionality"""

@@ -37,6 +37,10 @@ requires-python = ">=3.12"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+include = ["src*"]
+
+[tool.setuptools.package-data]
+"*" = ["tests/*.py"]
 
 [project.urls]
 PyPI = "https://pypi.org/project/MapleX/"
