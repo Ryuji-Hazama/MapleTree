@@ -4,21 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MapleX"
-version = "2.2.0"
-description = """A Python library for Maple file format operations, with logging and console color utilities
-
-# MapleX
-
-A Python library for Maple file format operations, with logging and console color utilities
-
-## MapleTree
-
-MapleTree is a powerful Python library designed for reading, editing, and managing Maple file formats. It provides a simple and intuitive interface for developers to work with Maple files, making it easier to manipulate data stored in this format.
-
-## Logger
-
-Logger is a versatile logging utility that allows developers to log messages with different severity levels (INFO, WARNING, ERROR, DEBUG) and customize the output format. It supports logging to both console and file, making it easy to track application behavior and diagnose issues.
-"""
+version = "3.0.0"
+description = """A Python library for simple logging, json file operations, Maple file format operations, and console color utilities."""
+keywords = ["logging", "logger", "json", "file operations", "maple file format", "console colors"]
 readme = "README.md"
 license-files = ["LICENSE"]
 authors = [

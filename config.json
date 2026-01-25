@@ -1,0 +1,13 @@
+{
+    "MapleLogger": {
+        "ConsoleLogLevel": "DEBUG",
+        "FileLogLevel": "ERROR",
+        "MaxLogSize": 1.5,
+        "WorkingDirectory": "/home/ryuji-hazama/Documents/Python/MapleTree/logs",
+        "FileEncoding": "utf-8"
+    },
+    "OtherConfig": {
+        "SomeSetting": true,
+        "AnotherSetting": "value"
+    }
+}

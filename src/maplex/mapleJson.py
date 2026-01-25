@@ -44,6 +44,14 @@ class MapleJson:
 
         self.indent = indent
 
+    def getEnsureAscii(self) -> bool:
+
+        return self.ensure_ascii
+    
+    def setEnsureAscii(self, ensure_ascii: bool) -> None:
+
+        self.ensure_ascii = ensure_ascii
+
     def isEncrypted(self) -> bool:
 
         return self.encrypt
@@ -58,6 +66,15 @@ class MapleJson:
 
         self.key = key
         self.fernet = Fernet(key) if encrypt and key else None
+
+    def getKey(self) -> bytes:
+
+        return self.key
+
+    def setKey(self, key: bytes) -> None:
+
+        self.key = key
+        self.fernet = Fernet(key) if self.encrypt and key else None
 
     #
     #####################

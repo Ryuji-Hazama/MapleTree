@@ -6,7 +6,7 @@ import sys
 import traceback
 from enum import IntEnum
 from typing import Literal
-from .mapleTreeEditor import MapleTree
+from .mapleJson import MapleJson
 from .mapleColors import ConsoleColors
 from .mapleExceptions import *
 
@@ -19,7 +19,10 @@ class Logger:
             cmdLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
             fileLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None,
             maxLogSize: float | None = None,
-            fileMode: Literal["append", "overwrite", "daily"] | None = None
+            fileMode: Literal["append", "overwrite", "daily"] | None = None,
+            configFile: str = "config.json",
+            encoding: str | None = None,
+            **kwargs
         ) -> None:
 
         """
@@ -33,7 +36,8 @@ class Logger:
         self.pid = os.getpid()
         self.consoleColors = ConsoleColors()
         self.fileMode = "append" if fileMode is None else fileMode
-        
+        self.encoding = encoding
+
         # Check the OS (Windows 10 or older cannot change the console color)
 
         if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
@@ -46,30 +50,55 @@ class Logger:
         #
         ############################
         # Check config file
+
+        self.CONFIG_KEY = "MapleLogger"
+        self.CONSOLE_LOG_LEVEL = "ConsoleLogLevel"
+        self.FILE_LOG_LEVEL = "FileLogLevel"
+        self.MAX_LOG_SIZE = "MaxLogSize"
+        self.WORKING_DIRECTORY = "WorkingDirectory"
+        self.FILE_ENCODING = "FileEncoding"
+
+        # Set config file path
         
-        configFile = path.join(self.CWD, "config.mpl")
+        if path.isabs(configFile):
+
+            self.configFile = configFile
+
+        else:
+
+            self.configFile = path.join(self.CWD, configFile)
+
+        # Try to read config file
 
         try:
 
-            if not path.isfile(configFile):
+            logConfInstance = MapleJson(self.configFile)
 
-                with open(configFile, "w") as f:
+            if path.isfile(self.configFile):
 
-                    f.write(f"MAPLE\n"
-                            f"H *LOG_SETTINGS\n"
-                            f"    CMD {cmdLogLevel if cmdLogLevel is not None else 'INFO'}\n"
-                            f"    FLE {fileLogLevel if fileLogLevel is not None else 'INFO'}\n"
-                            f"    # TRACE, DEBUG, INFO, WARN,\n"
-                            f"    # ERROR, FATAL, NONE\n"
-                            f"    MAX {maxLogSize if maxLogSize is not None else 3}\n"
-                            f"    OUT {workingDirectory if workingDirectory is not None else 'logs'}\n"
-                            f"E\nEOF")
-                
-            maple = MapleTree(configFile)
+                confJson = logConfInstance.read()
 
-        except:
+            else:
 
-            maple = None
+                confJson = {}
+
+        except Exception as ex:
+
+            print(f"{self.consoleColors.Red}Warning: Failed to read logger config file: {ex}{self.consoleColors.Reset}")
+            confJson = {}
+            logConfInstance = None
+
+        # Read configuration
+
+        logConf = confJson.get(self.CONFIG_KEY, None)
+
+        if logConf is None:
+
+            logConf = {}
+            logConf[self.CONSOLE_LOG_LEVEL] = "INFO"
+            logConf[self.FILE_LOG_LEVEL] = "INFO"
+            logConf[self.MAX_LOG_SIZE] = 3
+            logConf[self.WORKING_DIRECTORY] = "logs"
 
         #
         ############################
@@ -79,13 +108,14 @@ class Logger:
 
             self.CWD = workingDirectory
 
-        elif maple:
+        else:
 
-            self.CWD = maple.readMapleTag("OUT", "*LOG_SETTINGS")
+            self.CWD = logConf.get(self.WORKING_DIRECTORY, None)
 
         if self.CWD in {"", None}:
 
             self.CWD = path.join(os.getcwd(), "logs")
+            logConf[self.WORKING_DIRECTORY] = self.CWD
 
         elif not path.isabs(self.CWD):
 
@@ -113,7 +143,15 @@ class Logger:
         ############################
         # Set function name
 
-        caller = inspect.currentframe().f_back.f_globals.get("__name__", "")
+        isGetLogger = kwargs.get("getLogger", False)
+
+        if isGetLogger:
+
+            caller = inspect.currentframe().f_back.f_back.f_globals.get("__name__", "")
+
+        else:
+
+            caller = inspect.currentframe().f_back.f_globals.get("__name__", "")
 
         if func in {None, ""}:
 
@@ -138,24 +176,31 @@ class Logger:
 
         if maxLogSize is not None:
 
-            self.maxLogSize = maxLogSize * 1000000
+            self.setMaxLogSize(maxLogSize)
 
-        elif maple is not None:
+        else:
 
             try:
 
-                logSizeStr = maple.readMapleTag("MAX", "*LOG_SETTINGS")
+                logSize = logConf.get(self.MAX_LOG_SIZE, None)
 
-                if logSizeStr != "":
+                if logSize is not None:
 
-                    self.maxLogSize = float(logSizeStr) * 1000000
+                    self.setMaxLogSize(logSize)
 
-            except:
+                else:
 
-                pass
+                    self.maxLogSize = 3000000
+                    logConf[self.MAX_LOG_SIZE] = 3
+
+            except MapleLoggerException as ex:
+
+                print(f"{self.consoleColors.Red}Warning: Invalid MaxLogSize value provided. Using default value.{self.consoleColors.Reset}")
+                self.maxLogSize = 3000000
 
         if self.maxLogSize == 0:
 
+            print(f"{self.consoleColors.Red}Warning: Infinite log file size is not recommended. Using default value.{self.consoleColors.Reset}")
             self.maxLogSize = 3000000
 
         #
@@ -169,18 +214,24 @@ class Logger:
 
         if cmdLogLevel is not None:
 
-            self.consoleLogLevel = self.isLogLevel(cmdLogLevel)
+            consoleLogLevel = cmdLogLevel
 
-        if self.consoleLogLevel == -1 and maple is not None:
+        else:
 
-            strLogLevel = maple.readMapleTag("CMD", "*LOG_SETTINGS")
+            consoleLogLevel = logConf.get(self.CONSOLE_LOG_LEVEL, None)
 
-            if strLogLevel is not None:
+            if consoleLogLevel is None:
 
-                self.consoleLogLevel = self.isLogLevel(strLogLevel)
+                consoleLogLevel = "INFO"
+                logConf[self.CONSOLE_LOG_LEVEL] = consoleLogLevel
 
-        if self.consoleLogLevel == -1:
+        try:
 
+            self.consoleLogLevel = self.toLogLevel(consoleLogLevel)
+
+        except MapleInvalidLoggerLevelException as ex:
+
+            print(f"{self.consoleColors.Red}Warning: Invalid console log level provided: [{consoleLogLevel}]. Using default value.{self.consoleColors.Reset}")
             self.consoleLogLevel = self.LogLevel.INFO
 
         # File log level
@@ -189,18 +240,56 @@ class Logger:
 
             self.fileLogLevel = self.isLogLevel(fileLogLevel)
 
-        if self.fileLogLevel == -1 and maple is not None:
+        else:
 
-            strLogLevel = maple.readMapleTag("FLE", "*LOG_SETTINGS")
+            fileLogLevel = logConf.get(self.FILE_LOG_LEVEL, None)
 
-            if strLogLevel is not None:
+            if fileLogLevel is None:
 
-                self.fileLogLevel = self.isLogLevel(strLogLevel)
+                fileLogLevel = "INFO"
+                logConf[self.FILE_LOG_LEVEL] = fileLogLevel
 
-        if self.fileLogLevel == -1:
+        try:
+            
+            self.fileLogLevel = self.toLogLevel(fileLogLevel)
 
+        except MapleInvalidLoggerLevelException as ex:
+
+            print(f"{self.consoleColors.Red}Warning: Invalid file log level provided: [{fileLogLevel}]. Using default value.{self.consoleColors.Reset}")
             self.fileLogLevel = self.LogLevel.INFO
 
+        #
+        ############################
+        # Set file encoding
+
+        if encoding is not None:
+
+            self.encoding = encoding
+
+        else:
+
+            fileEncoding = logConf.get(self.FILE_ENCODING, None)
+
+            if fileEncoding is None:
+
+                fileEncoding = "utf-8"
+                logConf[self.FILE_ENCODING] = fileEncoding
+
+            self.encoding = fileEncoding
+
+        # Save config file
+
+        if logConfInstance is not None:
+
+            try:
+
+                confJson[self.CONFIG_KEY] = logConf
+                logConfInstance.write(confJson)
+
+            except Exception as ex:
+
+                print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
+        
     #
     #####################
     # Set log level enum
@@ -266,6 +355,54 @@ class Logger:
         except MapleInvalidLoggerLevelException as ex:
 
             raise MapleInvalidLoggerLevelException(loglevel, "Invalid file log level. Log level must be a string or integer corresponding to a valid log level.") from ex
+    
+    def getMaxLogSize(self) -> float:
+
+        '''Get max log size'''
+
+        return self.maxLogSize
+        
+    def setMaxLogSize(self, maxLogSize: any) -> None:
+
+        '''Set max log size'''
+
+        try:
+
+            self.maxLogSize = self.toLogSize(maxLogSize)
+
+        except MapleLoggerException as ex:
+
+            raise MapleLoggerException("Invalid max log size. Log size must be an integer, float or string.") from ex
+
+    #
+    ######################
+    # Convert log size
+
+    def toLogSize(self, logSize: any) -> int:
+
+        '''Convert log size to bytes'''
+
+        if type(logSize) in {int, float}:
+
+            return int(logSize * 1000000)
+
+        elif type(logSize) is str:
+
+            if logSize.lower().endswith("m"):
+
+                return int(float(logSize[:-1]) * 1000000)
+
+            elif logSize.lower().endswith("g"):
+
+                return int(float(logSize[:-1]) * 1000000000)
+
+            else:
+
+                return int(float(logSize) * 1000000)
+        
+        else:
+
+            raise MapleLoggerException(f"Invalid log size type: {type(logSize)}. Log size must be an integer, float or string.")
 
     #
     ####################
@@ -387,7 +524,7 @@ class Logger:
                 print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
         
             if loglevel >= self.fileLogLevel:
-                with open(self.logfile, "a") as f:
+                with open(self.logfile, "a", encoding=self.encoding) as f:
                     print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine}) {message}", file=f)
 
         except Exception as ex:
@@ -527,6 +664,63 @@ class Logger:
         self.logWriter(logLevel, ex, callerDepth=2)
         self.logWriter(logLevel, traceback.format_exc(), callerDepth=2)
 
+    #
+    ################################
+    # Save log settings
+
+    def saveLogSettings(self, configFile: str = "config.json") -> None:
+
+        """Save current log settings to config file"""
+        
+        try:
+
+            # Set config file path
+
+            if path.isabs(configFile):
+
+                configFilePath = configFile
+
+            else:
+
+                configFilePath = path.join(os.getcwd(), configFile)
+
+            # Try to read config file
+
+            logConfInstance = MapleJson(configFilePath)
+
+            if path.isfile(configFilePath):
+
+                confJson = logConfInstance.read()
+
+            else:
+
+                confJson = {}
+
+            # Update configuration
+
+            logConf = confJson.get(self.CONFIG_KEY, None)
+
+            if logConf is None:
+
+                logConf = {}
+
+            logConf[self.CONSOLE_LOG_LEVEL] = self.LogLevel(self.consoleLogLevel).name
+            logConf[self.FILE_LOG_LEVEL] = self.LogLevel(self.fileLogLevel).name
+            logConf[self.MAX_LOG_SIZE] = self.maxLogSize / 1000000
+            logConf[self.WORKING_DIRECTORY] = self.CWD
+
+            confJson[self.CONFIG_KEY] = logConf
+
+            # Save config file
+
+            logConfInstance.write(confJson)
+
+        except Exception as e:
+
+            raise MapleLoggerException(f"Error saving logger config file: {e}") from e
+
+# Dictionary to hold Logger instances
+
 _loggers: dict[str, Logger] = {}
 
 # Get or create a Logger instance
@@ -544,6 +738,7 @@ def getLogger(name: str = "", **kwargs) -> Logger:
     """
 
     if name not in _loggers:
+        kwargs["getLogger"] = True
         _loggers[name] = Logger(func=name, **kwargs)
     return _loggers[name]
 
