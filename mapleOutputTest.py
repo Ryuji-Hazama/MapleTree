@@ -80,8 +80,8 @@ def runTest():
 
         loggerForceLevel = maplex.Logger("LoggerForceLevel", cmdLogLevel=DEBUG, fileLogLevel=ERROR)
         logger.log(f"Current Json status: {config.read().get(LOG_SETTINGS, {})}")
-        logger.log(f"Console log level: {loggerForceLevel.getConsoleLogLevel()}")
-        logger.log(f"File log level: {loggerForceLevel.getFileLogLevel()}")
+        logger.log(f"Console log level: {loggerForceLevel.getConsoleLogLevel().name}")
+        logger.log(f"File log level: {loggerForceLevel.getFileLogLevel().name}")
         loggerForceLevel.trace("This is a TRACE level message. Should NOT appear anywhere.")
         loggerForceLevel.debug("This is a DEBUG level message. Should appear in only console.")
         loggerForceLevel.info("This is an INFO level message. Should appear in only console.")

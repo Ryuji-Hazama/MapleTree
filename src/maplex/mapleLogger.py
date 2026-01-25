@@ -322,7 +322,11 @@ class Logger:
 
     def getConsoleLogLevel(self) -> LogLevel:
 
-        '''Get console log level'''
+        '''
+        Get console log level
+        getConsoleLogLevel() -> LogLevel(int)
+        getConsoleLogLevel().name -> str
+        '''
 
         return self.consoleLogLevel
 
@@ -340,7 +344,11 @@ class Logger:
         
     def getFileLogLevel(self) -> LogLevel:
 
-        '''Get file log level'''
+        '''
+        Get file log level
+        getFileLogLevel() -> LogLevel(int)
+        getFileLogLevel().name -> str
+        '''
 
         return self.fileLogLevel
     
