@@ -49,7 +49,17 @@ Also outputs to the log file:
 (PsNo) yyyy-MM-dd HH:mm:ss.fff [INFO ][FunctionName] <module>(4) Hello there!
 ```
 
-[More detailes](https://github.com/Ryuji-Hazama/MapleTree/blob/main/README_MapleTree.md#logger-class)
+[More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Logger.md)
+
+[Logging Tips](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/LoggingTips.md)
+
+## MapleJson
+
+&nbsp;&nbsp;&nbsp;&nbsp;MapleJson class is a library class for convert data between `dict` data and JSON formatted file data.
+
+&nbsp;&nbsp;&nbsp;&nbsp;You can read, write and also encrypt a JSON file as a `dict` data.
+
+[More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Json.md)
 
 ## Maple File Format
 
@@ -116,123 +126,26 @@ EOF
 All datas after "\nEOF\n" will be ignored
 ```
 
-[More detailes](https://github.com/Ryuji-Hazama/MapleTree/blob/main/README_MapleTree.md#maple-file)
+[More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_MapleTree.md#maple-file)
 
 ## MapleTree Class
 
 &nbsp;&nbsp;&nbsp;&nbsp;MapleTree class is a Python library for read, edit, and write the Maple formatted file from the Python code.  
 &nbsp;&nbsp;&nbsp;&nbsp;You can also automatically encrypt the file data using the library functions.
 
-[More detailes](https://github.com/Ryuji-Hazama/MapleTree/blob/main/README_MapleTree.md#mapletree-class)
+[More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_MapleTree.md#mapletree-class)
 
 ## Exceptions
 
-### `class MapleException(Exception)`
+&nbsp;&nbsp;&nbsp;&nbsp;Excption classes are the specialized classes for MapleX to make your debug easier.
 
-&nbsp;&nbsp;&nbsp;&nbsp;This is a basic exception class for MapleTree.
-
-### `class MapleFileNotFoundException(MapleException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file that was specified at the instance initialization was not found.
-
-### `class KeyEmptyException(MapleException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when `encrypt=True` is used at the instance initialization, but the key for encryption is missing (`None` or empty).
-
-### `class MapleFileLockedException(MapleException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the instance tries to open the file, but the other instance has already locked the file.
-
-### `class MapleDataNotFoundException(MapleException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the data is not found in the file.
-
-### `MapleEncryptionNotEnabledException(MapleException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when trying to encrypt Maple data, but the encryption flag is `False`.
-
-### `class MapleHeaderNotFoundException(MapleDataNotFoundException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the header (specified by the user) is not found in the data.
-
-### `class MapleTagNotFoundException(MapleDataNotFoundException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the tag (specified by the user) is not found in the data.
-
-### `class NotAMapleFileException(MapleDataNotFoundException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file is not a Maple file.
-
-- The file without a "MAPLE" line.
-
-### `class InvalidMapleFileFormatException(NotAMapleFileException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file format is an invalid Maple format.
-
-- The file has a "MAPLE" line, but the format is wrong or broken.
-
-### `class MapleFileEmptyException(NotAMapleFileException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the file is empty (No data)
-
-### `class MapleSyntaxException(MapleException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the syntax of the MapleTree function (mostly its parameter) is invalid.
-
-### `class MapleTypeException(MapleSyntaxException)`
-
-&nbsp;&nbsp;&nbsp;&nbsp;This occurs when the user hands the unknown keyword arguments as the `**kwargs` to the MapleTree function.
+[More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Exceptions.md#exceptions)
 
 ## Console Colors
 
-### Standard colors
+&nbsp;&nbsp;&nbsp;&nbsp;ConsoleColors class is a class library for color-highlight the standard output.
 
-|Key|Value|Color|
-|---|-----|-----|
-|`Black`|\\033\[30m|Black|
-|`Red`|\\033\[31m|Red|
-|`Green`|\\033\[32m|Green|
-|`Yellow`|\\033\[33m|Yellow|
-|`Blue`|\\033\[34m|Blue|
-|`Magenta`|\\033\[35m|Magenta|
-|`LightBlue`|\\033\[36m|LightBlue|
-|`White`|\\033\[37m|White|
-
-### Bright colors
-
-|Key|Value|Color|
-|---|-----|-----|
-|`bBlack`|\\033\[90m|Black|
-|`bRed`|\\033\[91m|Red|
-|`bGreen`|\\033\[92m|Green|
-|`bYellow`|\\033\[93m|Yellow|
-|`bBlue`|\\033\[94m|Blue|
-|`bMagenta`|\\033\[95m|Magenta|
-|`bLightBlue`|\\033\[96m|LightBlue|
-|`bWhite`|\\033\[97m|White|
-
-### Background colors
-
-|Key|Value|Color|
-|---|-----|-----|
-|`bgBlack`|\\033\[40m|Black|
-|`bgRed`|\\033\[41m|Red|
-|`bgGreen`|\\033\[42m|Green|
-|`bgYellow`|\\033\[43m|Yellow|
-|`bgBlue`|\\033\[44m|Blue|
-|`bgMagenta`|\\033\[45m|Magenta|
-|`bgLightBlue`|\\033\[46m|LightBlue|
-|`bgWhite`|\\033\[47m|White|
-
-### Other formats
-
-|Key|Value|Description|
-|---|-----|-----------|
-|`Bold`|\\033\[1m|Bold text|
-|`Italic`|\\033\[3m|Italic text|
-|`Underline`|\\033\[4m|Underlined text|
-|`Reversed`|\\033\[7m|Reversed colors|
-|`Reset`|\\033\[0m|Reset formatting|
+[More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_ConsoleColors.md)
 
 ## Install MapleX
 
