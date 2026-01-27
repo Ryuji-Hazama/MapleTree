@@ -31,7 +31,7 @@ pip install MapleX
 ### Logger Sample
 
 ```python
-from maplex
+import maplex
 
 logger = maplex.getLogger("FunctionName")
 logger.info("Hello there!")
