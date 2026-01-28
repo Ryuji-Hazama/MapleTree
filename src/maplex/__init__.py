@@ -47,6 +47,6 @@ __all__ = [
     'winUnHide'
 ]
 
-__version__ = "3.0.0.dev1"
+__version__ = "3.0.0.dev2"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"
