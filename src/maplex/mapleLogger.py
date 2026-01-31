@@ -38,18 +38,71 @@ class Logger:
         self.fileMode = "append" if fileMode is None else fileMode
         self.encoding = encoding
 
-        # Check the OS (Windows 10 or older cannot change the console color)
+        try:
 
-        if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
+            # Check the OS (Windows 10 or older cannot change the console color)
 
-            self.consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
-                                            bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
-                                            bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
-                                            Bold="", Underline="", Reversed="", Reset="")
+            if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
 
-        #
-        ############################
-        # Check config file
+                self.consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
+                                                bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
+                                                bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
+                                                Bold="", Underline="", Reversed="", Reset="")
+
+            logConfInstance = self.__checkConfigFile(configFile)
+            self.__checkOutputDirectory(workingDirectory)
+            self.__setLogFileName(self.fileMode)
+            self.__setFuncName(kwargs.get("getLogger", False), func)
+            self.__setLogFileSize(maxLogSize)
+            self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
+            self.__setFileEncoding(encoding)
+
+            # Save config file
+
+            if logConfInstance is not None:
+
+                try:
+
+                    confJson = logConfInstance.read()
+
+                except Exception:
+
+                    confJson = {}
+                
+                try:
+
+                    confJson[self.CONFIG_KEY] = self.logConf
+                    logConfInstance.write(confJson)
+
+                except Exception as ex:
+
+                    print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
+
+        except Exception as ex:
+
+            print(f"{self.consoleColors.Red}Error initializing logger: {ex}{self.consoleColors.Reset}")
+            raise MapleLoggerException(f"Error initializing logger: {ex}") from ex
+
+    #
+    #####################
+    # Set log level enum
+
+    class LogLevel(IntEnum):
+
+        TRACE = 0
+        DEBUG = 1
+        INFO = 2
+        WARN = 3
+        ERROR = 4
+        FATAL = 5
+        NONE = 6
+
+    ###########################################
+    # Special Methods for Class Initialization
+
+    def __checkConfigFile(self, configFile: str) -> MapleJson | None:
+    
+        '''Check logger config file and read settings'''
 
         self.CONFIG_KEY = "MapleLogger"
         self.CONSOLE_LOG_LEVEL = "ConsoleLogLevel"
@@ -60,13 +113,7 @@ class Logger:
 
         # Set config file path
         
-        if path.isabs(configFile):
-
-            self.configFile = configFile
-
-        else:
-
-            self.configFile = path.join(self.CWD, configFile)
+        self.configFile = self.__checkFilePath(configFile)
 
         # Try to read config file
 
@@ -100,29 +147,55 @@ class Logger:
             logConf[self.MAX_LOG_SIZE] = 3
             logConf[self.WORKING_DIRECTORY] = "logs"
 
-        #
-        ############################
-        # Check output directory
-        
-        if workingDirectory is not None:
+        self.logConf = logConf
+        return logConfInstance
 
-            self.CWD = workingDirectory
+    def __checkFilePath(self, filePath: str) -> str:
+
+        '''Check and return absolute file path'''
+
+        if path.isabs(filePath):
+
+            return filePath
 
         else:
 
-            self.CWD = logConf.get(self.WORKING_DIRECTORY, None)
+            return path.join(os.getcwd(), filePath)
+
+    def __checkOutputDirectory(self, outputDir: str) -> None:
+
+        '''Check and set output directory'''
+
+        # Check parameter and config file
+
+        if outputDir is not None:
+
+            self.CWD = outputDir
+
+        else:
+
+            self.CWD = self.logConf.get(self.WORKING_DIRECTORY, None)
+
+        # Set absolute path
 
         if self.CWD in {"", None}:
 
             self.CWD = path.join(os.getcwd(), "logs")
-            logConf[self.WORKING_DIRECTORY] = self.CWD
+            self.logConf[self.WORKING_DIRECTORY] = self.CWD
 
         elif not path.isabs(self.CWD):
 
             self.CWD = path.join(os.getcwd(), self.CWD)
 
-        #############################
-        # Set log file name
+        # Check if directory exists
+
+        if not path.isdir(self.CWD):
+
+            os.makedirs(self.CWD)
+
+    def __setLogFileName(self, fileMode: str) -> None:
+
+        '''Set log file name'''
 
         if fileMode == "daily":
 
@@ -132,26 +205,15 @@ class Logger:
 
             self.logfile = path.join(self.CWD, "AppLog.log")
 
-        #
-        ############################
-        # Check log directory
-
-        if not path.isdir(path.join(self.CWD)):
-            os.makedirs(path.join(self.CWD))
-
-        #
-        ############################
-        # Set function name
-
-        isGetLogger = kwargs.get("getLogger", False)
+    def __setFuncName(self, isGetLogger: bool, func: str | None = None) -> None:
 
         if isGetLogger:
 
-            caller = inspect.currentframe().f_back.f_back.f_globals.get("__name__", "")
+            caller = inspect.stack()[3].frame.f_globals.get("__name__", "")
 
         else:
 
-            caller = inspect.currentframe().f_back.f_globals.get("__name__", "")
+            caller = inspect.stack()[2].frame.f_globals.get("__name__", "")
 
         if func in {None, ""}:
 
@@ -168,9 +230,7 @@ class Logger:
             self.func = ""
             self.callerName = f"{caller}."
 
-        #
-        ############################
-        # Set max log file size
+    def __setLogFileSize(self, maxLogSize: any) -> None:
 
         self.maxLogSize = 0
 
@@ -182,7 +242,7 @@ class Logger:
 
             try:
 
-                logSize = logConf.get(self.MAX_LOG_SIZE, None)
+                logSize = self.logConf.get(self.MAX_LOG_SIZE, None)
 
                 if logSize is not None:
 
@@ -191,7 +251,7 @@ class Logger:
                 else:
 
                     self.maxLogSize = 3000000
-                    logConf[self.MAX_LOG_SIZE] = 3
+                    self.logConf[self.MAX_LOG_SIZE] = 3
 
             except MapleLoggerException as ex:
 
@@ -203,64 +263,38 @@ class Logger:
             print(f"{self.consoleColors.Red}Warning: Infinite log file size is not recommended. Using default value.{self.consoleColors.Reset}")
             self.maxLogSize = 3000000
 
-        #
-        ############################
-        # Set output log levels
+    def __setOutputLogLevels(self, cmdLogLevel: any, fileLogLevel: any) -> None:
 
-        self.consoleLogLevel = -1
-        self.fileLogLevel = -1
+        self.consoleLogLevel = self.__setLogLevel(self.CONSOLE_LOG_LEVEL, cmdLogLevel)
+        self.fileLogLevel = self.__setLogLevel(self.FILE_LOG_LEVEL, fileLogLevel)
 
-        # Console log level
+    def __setLogLevel(self, fileOrConsole, loglevel: any) -> LogLevel:
 
-        if cmdLogLevel is not None:
+        '''Set log level'''
 
-            consoleLogLevel = cmdLogLevel
+        if loglevel is not None:
 
+            tempLogLevel = loglevel
+        
         else:
 
-            consoleLogLevel = logConf.get(self.CONSOLE_LOG_LEVEL, None)
+            tempLogLevel = self.logConf.get(fileOrConsole, "INFO")
 
-            if consoleLogLevel is None:
+            if tempLogLevel is None:
 
-                consoleLogLevel = "INFO"
-                logConf[self.CONSOLE_LOG_LEVEL] = consoleLogLevel
+                tempLogLevel = "INFO"
+                self.logConf[fileOrConsole] = tempLogLevel
 
         try:
 
-            self.consoleLogLevel = self.toLogLevel(consoleLogLevel)
+            return self.toLogLevel(tempLogLevel)
 
         except MapleInvalidLoggerLevelException as ex:
 
-            print(f"{self.consoleColors.Red}Warning: Invalid console log level provided: [{consoleLogLevel}]. Using default value.{self.consoleColors.Reset}")
-            self.consoleLogLevel = self.LogLevel.INFO
+            print(f"{self.consoleColors.Red}Warning: Invalid {fileOrConsole} provided: [{tempLogLevel}]. Using default value.{self.consoleColors.Reset}")
+            return self.LogLevel.INFO
 
-        # File log level
-
-        if fileLogLevel is not None:
-
-            self.fileLogLevel = self.isLogLevel(fileLogLevel)
-
-        else:
-
-            fileLogLevel = logConf.get(self.FILE_LOG_LEVEL, None)
-
-            if fileLogLevel is None:
-
-                fileLogLevel = "INFO"
-                logConf[self.FILE_LOG_LEVEL] = fileLogLevel
-
-        try:
-            
-            self.fileLogLevel = self.toLogLevel(fileLogLevel)
-
-        except MapleInvalidLoggerLevelException as ex:
-
-            print(f"{self.consoleColors.Red}Warning: Invalid file log level provided: [{fileLogLevel}]. Using default value.{self.consoleColors.Reset}")
-            self.fileLogLevel = self.LogLevel.INFO
-
-        #
-        ############################
-        # Set file encoding
+    def __setFileEncoding(self, encoding: str) -> None:
 
         if encoding is not None:
 
@@ -268,44 +302,19 @@ class Logger:
 
         else:
 
-            fileEncoding = logConf.get(self.FILE_ENCODING, None)
+            fileEncoding = self.logConf.get(self.FILE_ENCODING, None)
 
             if fileEncoding is None:
 
                 fileEncoding = "utf-8"
-                logConf[self.FILE_ENCODING] = fileEncoding
+                self.logConf[self.FILE_ENCODING] = fileEncoding
 
             self.encoding = fileEncoding
 
-        # Save config file
+    # Class initialization ends here
+    #################################
 
-        if logConfInstance is not None:
-
-            try:
-
-                confJson[self.CONFIG_KEY] = logConf
-                logConfInstance.write(confJson)
-
-            except Exception as ex:
-
-                print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
-        
-    #
-    #####################
-    # Set log level enum
-
-    class LogLevel(IntEnum):
-
-        TRACE = 0
-        DEBUG = 1
-        INFO = 2
-        WARN = 3
-        ERROR = 4
-        FATAL = 5
-        NONE = 6
-
-    #
-    #####################
+    #################################
     # Getters and Setters
 
     def getLogFile(self) -> str:
@@ -676,7 +685,7 @@ class Logger:
     ################################
     # Save log settings
 
-    def saveLogSettings(self, configFile: str = "config.json") -> None:
+    def saveLogSettings(self, configFile: str = None) -> None:
 
         """Save current log settings to config file"""
         
@@ -684,13 +693,11 @@ class Logger:
 
             # Set config file path
 
-            if path.isabs(configFile):
+            if configFile is None:
 
-                configFilePath = configFile
+                configFile = self.configFile
 
-            else:
-
-                configFilePath = path.join(os.getcwd(), configFile)
+            configFilePath = self.__checkFilePath(configFile)
 
             # Try to read config file
 
@@ -748,6 +755,25 @@ def getLogger(name: str = "", **kwargs) -> Logger:
     if name not in _loggers:
         kwargs["getLogger"] = True
         _loggers[name] = Logger(func=name, **kwargs)
+
+    return _loggers[name]
+
+def getDailyLogger(name: str = "", **kwargs) -> Logger:
+    """
+    Get or create a daily Logger instance.
+    
+    Args:
+        name: Logger name (usually __name__ of the calling module)
+        **kwargs: Arguments to pass to Logger constructor if creating new instance
+    
+    Returns:
+        Logger instance
+    """
+
+    if name not in _loggers:
+        kwargs["getLogger"] = True
+        _loggers[name] = Logger(func=name, fileMode="daily", **kwargs)
+
     return _loggers[name]
 
 """ * * * * * * * * * * * * * """

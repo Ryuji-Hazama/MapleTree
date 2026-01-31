@@ -104,6 +104,9 @@ def runTest():
         noFucnLogger = maplex.Logger()
         noFucnLogger.info("This is a log message from a logger without function name.")
 
+        dailyLogger = maplex.getDailyLogger("DailyLoggerTest")
+        dailyLogger.info("This is a log message from a daily logger.")
+
         logger.log("Maple Output Test Completed")
 
     except Exception as e:
