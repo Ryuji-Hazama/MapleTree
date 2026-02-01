@@ -6,7 +6,7 @@ import sys
 import traceback
 from enum import IntEnum
 from typing import Literal
-from .mapleJson import MapleJson
+from .json import MapleJson
 from .mapleColors import ConsoleColors
 from .mapleExceptions import *
 
@@ -463,8 +463,12 @@ class Logger:
 
     def isLogLevel(self, lLStr: str) -> LogLevel:
 
+        '''Check if string is a valid log level'''
+
+        logLevelStr = lLStr.upper()
+
         for lLevel in self.LogLevel:
-            if lLStr == lLevel.name:
+            if logLevelStr == lLevel.name:
                 return lLevel
 
         return -1

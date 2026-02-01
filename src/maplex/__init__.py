@@ -4,7 +4,7 @@ Logger: A simple logging utility for tracking events and debugging.
 """
 
 from .mapleColors import ConsoleColors
-from .mapleJson import MapleJson
+from .json import MapleJson
 from .mapleLogger import Logger, getLogger, getDailyLogger
 from .mapleExceptions import (
     InvalidMapleFileFormatException,

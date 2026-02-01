@@ -6,12 +6,19 @@ from . import mapleExceptions as mExc
 
 class MapleJson:
 
-    def __init__(self, filePath: str, fileEncoding: str = 'utf-8', indent: int = 4, ensure_ascii: bool = True, encrypt: bool = False, key: bytes = None):
+    def __init__(self,
+                 filePath: str,
+                 fileEncoding: str = 'utf-8',
+                 indent: int = 4,
+                 ensureAscii: bool = False,
+                 encrypt: bool = False,
+                 key: bytes = None
+                 ) -> None:
 
         self.filePath = filePath
         self.fileEncoding = fileEncoding
         self.indent = indent
-        self.ensure_ascii = ensure_ascii
+        self.ensureAscii = ensureAscii
         self.encrypt = encrypt
         self.key = key
         self.fernet = Fernet(key) if encrypt and key else None
@@ -46,11 +53,11 @@ class MapleJson:
 
     def getEnsureAscii(self) -> bool:
 
-        return self.ensure_ascii
+        return self.ensureAscii
     
-    def setEnsureAscii(self, ensure_ascii: bool) -> None:
+    def setEnsureAscii(self, ensureAscii: bool) -> None:
 
-        self.ensure_ascii = ensure_ascii
+        self.ensureAscii = ensureAscii
 
     def isEncrypted(self) -> bool:
 
@@ -80,7 +87,7 @@ class MapleJson:
     #####################
     # Basic File Operations
 
-    def read(self) -> dict:
+    def read(self, *keys) -> dict | None:
 
         try:
 
@@ -91,12 +98,26 @@ class MapleJson:
                 if self.encrypt and self.fernet:
 
                     decryptedData = self.fernet.decrypt(data)
-                    return json.loads(decryptedData.decode(self.fileEncoding))
+                    jsonData = json.loads(decryptedData.decode(self.fileEncoding))
 
                 else:
 
-                    return json.loads(data.decode(self.fileEncoding))
+                    jsonData = json.loads(data.decode(self.fileEncoding))
 
+            # Navigate through keys if provided
+
+            if keys:
+
+                for jsonKey in keys:
+
+                    if jsonData is None:
+
+                        return None
+
+                    jsonData = jsonData.get(jsonKey, None)
+
+            return jsonData
+            
         except FileNotFoundError:
 
             raise mExc.MapleFileNotFoundException(self.filePath)
@@ -113,7 +134,7 @@ class MapleJson:
 
                 raise mExc.MapleTypeException(self.filePath, "Data to write must be a dictionary")
 
-            jsonData = json.dumps(data, indent=self.indent, ensure_ascii=self.ensure_ascii).encode(self.fileEncoding)
+            jsonData = json.dumps(data, indent=self.indent, ensure_ascii=self.ensureAscii).encode(self.fileEncoding)
 
             if self.encrypt and self.fernet:
 

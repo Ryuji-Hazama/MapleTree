@@ -5,16 +5,16 @@
 ## Logger Initialization
 
 ```python
-    def __init__(
-            func: str = "",
-            workingDirectory: str | None = None,
-            cmdLogLevel: str | None = None,
-            fileLogLevel: str | None = None,
-            maxLogSize: float | None = None,
-            fileMode: Literal["append", "overwrite", "daily"] | None = None,
-            configFile: str = "config.json",
-            encoding: str | None = None,
-        ) -> None:
+def __init__(
+    func: str = "",
+    workingDirectory: str | None = None,
+    cmdLogLevel: str | None = None,
+    fileLogLevel: str | None = None,
+    maxLogSize: float | None = None,
+    fileMode: Literal["append", "overwrite", "daily"] | None = None,
+    configFile: str = "config.json",
+    encoding: str | None = None,
+) -> None:
 ```
 
 |Property|Required|Value|Version|

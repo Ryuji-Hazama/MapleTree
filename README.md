@@ -37,7 +37,7 @@ logger = maplex.getLogger("FunctionName")
 logger.info("Hello there!")
 ```
 
-This outputs to console:
+This outputs to the console:
 
 ```console
 [INFO ][FunctionName] <module>(4) Hello there!
@@ -55,9 +55,9 @@ Also outputs to the log file:
 
 ## MapleJson
 
-&nbsp;&nbsp;&nbsp;&nbsp;MapleJson class is a library class for convert data between `dict` data and JSON formatted file data.
+&nbsp;&nbsp;&nbsp;&nbsp;MapleJson class is a library class for converting data between `dict` data and JSON-formatted file data.
 
-&nbsp;&nbsp;&nbsp;&nbsp;You can read, write and also encrypt a JSON file as a `dict` data.
+&nbsp;&nbsp;&nbsp;&nbsp;You can read, write, and also encrypt a JSON file as a `dict` data.
 
 [More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Json.md)
 
@@ -130,20 +130,20 @@ All datas after "\nEOF\n" will be ignored
 
 ## MapleTree Class
 
-&nbsp;&nbsp;&nbsp;&nbsp;MapleTree class is a Python library for read, edit, and write the Maple formatted file from the Python code.  
+&nbsp;&nbsp;&nbsp;&nbsp;MapleTree class is a Python library for reading, editing, and writeing the Maple formatted file from the Python code.  
 &nbsp;&nbsp;&nbsp;&nbsp;You can also automatically encrypt the file data using the library functions.
 
 [More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_MapleTree.md#mapletree-class)
 
 ## Exceptions
 
-&nbsp;&nbsp;&nbsp;&nbsp;Excption classes are the specialized classes for MapleX to make your debug easier.
+&nbsp;&nbsp;&nbsp;&nbsp;Excption classes are the specialized classes for MapleX to make your debugging easier.
 
 [More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Exceptions.md#exceptions)
 
 ## Console Colors
 
-&nbsp;&nbsp;&nbsp;&nbsp;ConsoleColors class is a class library for color-highlight the standard output.
+&nbsp;&nbsp;&nbsp;&nbsp;ConsoleColors class is a class library for color-highlighting the standard output.
 
 [More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_ConsoleColors.md)
 
