@@ -1,5 +1,10 @@
 # MapleX
 
+![GitHub Tag](https://img.shields.io/github/v/tag/Ryuji-Hazama/MapleTree)
+![GitHub last commit](https://img.shields.io/github/last-commit/Ryuji-Hazama/MapleTree)
+![PyPI - Version](https://img.shields.io/pypi/v/MapleX)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/MapleX)
+
 &nbsp;&nbsp;&nbsp;&nbsp;MapleX is a Python library for simple logging, json file operations, Maple file format operations, and console color utilities.
 
 &nbsp;&nbsp;&nbsp;&nbsp;***You can install the package from pip with the following command.***
@@ -152,8 +157,11 @@ All datas after "\nEOF\n" will be ignored
 ### From PyPI
 
 ```bash
-[python[3] -m] pip install MapleX [--break-system-packages]
+[python[3] -m] pip install MapleX [--upgrade] [--break-system-packages]
 ```
+
+- `--upgrade` option for upgrade from older version.
+- `--break-system-package` option for Python on Linux OS outside the `venv`. ***This might brak the system Python package dependencies.***
 
 ### Manual Installation
 
