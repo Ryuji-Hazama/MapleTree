@@ -85,3 +85,7 @@ jsonInstance = MapleJson("jsonFile.json", fileEncoding="shift_jis")
     }
 }
 ```
+
+### Encrypt
+
+### Key
