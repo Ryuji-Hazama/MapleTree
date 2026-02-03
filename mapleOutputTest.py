@@ -3,6 +3,7 @@ You can use this file to check the actual log output and
 configuration modification effects of the mapleLogger module.
 """
 
+import datetime
 import src.maplex as maplex
 
 def runTest():

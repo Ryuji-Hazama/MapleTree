@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "MapleX"
-version = "3.0.0.dev3"
+version = "3.0.0.dev4"
 description = """A Python library for simple logging, json file operations, Maple file format operations, and console color utilities."""
 keywords = ["logging", "logger", "json", "file operations", "maple file format", "console colors"]
 readme = "README.md"
