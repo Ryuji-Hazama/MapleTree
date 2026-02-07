@@ -181,3 +181,26 @@ class MapleJson:
             self.encrypt = True
 
         return key
+
+_json: dict[str, MapleJson] = {}
+
+# Get or create a MapleJson instance
+
+def getMapleJson(filePath: str,
+                  fileEncoding: str = 'utf-8',
+                  indent: int = 4,
+                  ensureAscii: bool = False,
+                  encrypt: bool = False,
+                  key: bytes = None
+                  ) -> MapleJson:
+
+    if filePath not in _json:
+
+        _json[filePath] = MapleJson(filePath,
+                                    fileEncoding,
+                                    indent,
+                                    ensureAscii,
+                                    encrypt,
+                                    key)
+
+    return _json[filePath]

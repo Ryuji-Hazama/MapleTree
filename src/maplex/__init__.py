@@ -4,7 +4,7 @@ Logger: A simple logging utility for tracking events and debugging.
 """
 
 from .mapleColors import ConsoleColors
-from .json import MapleJson
+from .json import MapleJson, getMapleJson
 from .mapleLogger import Logger, getLogger, getDailyLogger
 from .mapleExceptions import (
     InvalidMapleFileFormatException,
@@ -27,6 +27,7 @@ from .utils import winHide, winUnHide
 __all__ = [
     'ConsoleColors',
     'getDailyLogger',
+    'getMapleJson',
     'getLogger',
     'InvalidMapleFileFormatException',
     'KeyEmptyException',
@@ -48,6 +49,6 @@ __all__ = [
     'winUnHide'
 ]
 
-__version__ = "3.0.0.dev4"
+__version__ = "3.0.0a1"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"
