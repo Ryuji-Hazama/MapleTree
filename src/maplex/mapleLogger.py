@@ -56,27 +56,7 @@ class Logger:
             self.__setLogFileSize(maxLogSize)
             self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
             self.__setFileEncoding(encoding)
-
-            # Save config file
-
-            if logConfInstance is not None:
-
-                try:
-
-                    confJson = logConfInstance.read()
-
-                except Exception:
-
-                    confJson = {}
-                
-                try:
-
-                    confJson[self.CONFIG_KEY] = self.logConf
-                    logConfInstance.write(confJson)
-
-                except Exception as ex:
-
-                    print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
+            self.__saveLogSettings(logConfInstance)
 
         except Exception as ex:
 
@@ -311,6 +291,29 @@ class Logger:
 
             self.encoding = fileEncoding
 
+    def __saveLogSettings(self, logConfInstance: MapleJson | None) -> None:
+
+        """ Save current log settings to config file """
+
+        if logConfInstance is not None:
+
+            try:
+
+                confJson = logConfInstance.read()
+
+            except Exception:
+
+                confJson = {}
+            
+            try:
+
+                confJson[self.CONFIG_KEY] = self.logConf
+                logConfInstance.write(confJson)
+
+            except Exception as ex:
+
+                print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
+
     # Class initialization ends here
     #################################
 
@@ -483,6 +486,12 @@ class Logger:
         Output log to log file and console.
         """
 
+        # Precheck log level
+
+        if loglevel < self.consoleLogLevel and loglevel < self.fileLogLevel:
+
+            return
+
         # Console colors
 
         Black = self.consoleColors.Black
@@ -545,8 +554,20 @@ class Logger:
                 print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
         
             if loglevel >= self.fileLogLevel:
-                with open(self.logfile, "a", encoding=self.encoding) as f:
-                    print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine}) {message}", file=f)
+
+                for i in range(3):
+
+                    try:
+
+                        with open(self.logfile, "a", encoding=self.encoding) as f:
+                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine}) {message}", file=f)
+
+                        break
+
+                    except IOError:
+
+                        if i == 2:
+                            raise
 
         except Exception as ex:
 

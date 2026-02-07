@@ -163,11 +163,6 @@ All datas after "\nEOF\n" will be ignored
 - `--upgrade` option for upgrade from older version.
 - `--break-system-package` option for Python on Linux OS outside the `venv`. ***This might brak the system Python package dependencies.***
 
-### Manual Installation
-
-1. Download `./dist/maplex-<version>-py3-none-any.whl`
-2. Run `[python[3] -m] pip install /path/to/downloaded/maplex-<version>-py3-none-any.whl [--break-system-packages]`
-
 ### Build the Package by Yourself
 
 &nbsp;&nbsp;&nbsp;&nbsp;Run `python[3] -m build`  
