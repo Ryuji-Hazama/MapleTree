@@ -63,7 +63,7 @@ class MapleJson:
 
         return self.encrypt
     
-    def setEncryption(self, encrypt: bool, key=None) -> None:
+    def setEncryption(self, encrypt: bool, key: bytes | None = None) -> None:
 
         self.encrypt = encrypt
 
@@ -74,7 +74,7 @@ class MapleJson:
         self.key = key
         self.fernet = Fernet(key) if encrypt and key else None
 
-    def getKey(self) -> bytes:
+    def getKey(self) -> bytes | None:
 
         return self.key
 
@@ -87,7 +87,7 @@ class MapleJson:
     #####################
     # Basic File Operations
 
-    def read(self, *keys) -> dict | None:
+    def read(self, *keys: str) -> dict | None:
 
         try:
 
@@ -158,7 +158,6 @@ class MapleJson:
     #####################
     # Utility Methods
 
-    #
     #####################
     # Generate Encryption Key
 

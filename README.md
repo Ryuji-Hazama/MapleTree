@@ -56,7 +56,7 @@ Also outputs to the log file:
 
 [More details](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Logger.md)
 
-[Logging Tips](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/LoggingTips.md)
+[Logging Best Practice](https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/LoggingBestPractice.md)
 
 ## MapleJson
 
