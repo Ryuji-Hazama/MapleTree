@@ -551,7 +551,7 @@ class Logger:
             # Export to console and log file
 
             if loglevel >= self.consoleLogLevel:
-                print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
+                print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}\t: {message}")
         
             if loglevel >= self.fileLogLevel:
 
@@ -560,7 +560,7 @@ class Logger:
                     try:
 
                         with open(self.logfile, "a", encoding=self.encoding) as f:
-                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine}) {message}", file=f)
+                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine})\t: {message}", file=f)
 
                         break
 
@@ -703,8 +703,7 @@ class Logger:
 
             self.logWriter(logLevel, message, callerDepth=2)
 
-        self.logWriter(logLevel, ex, callerDepth=2)
-        self.logWriter(logLevel, traceback.format_exc(), callerDepth=2)
+        self.logWriter(logLevel, f"{ex}\n{traceback.format_exc()}", callerDepth=2)
 
     #
     ################################
