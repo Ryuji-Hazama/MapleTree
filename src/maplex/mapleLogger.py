@@ -37,6 +37,7 @@ class Logger:
         self.consoleColors = ConsoleColors()
         self.fileMode = "append" if fileMode is None else fileMode
         self.encoding = encoding
+        self.funcAlignWidth = 8 # Width for function name alignment in logs (set this in config in future)
 
         try:
 
@@ -53,6 +54,7 @@ class Logger:
             self.__checkOutputDirectory(workingDirectory)
             self.__setLogFileName(self.fileMode)
             self.__setFuncName(kwargs.get("getLogger", False), func)
+            self.__setFuncAlignWidth(self.funcAlignWidth)
             self.__setLogFileSize(maxLogSize)
             self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
             self.__setFileEncoding(encoding)
@@ -209,6 +211,18 @@ class Logger:
 
             self.func = ""
             self.callerName = f"{caller}."
+
+    def __setFuncAlignWidth(self, alignWidth: int | None = None) -> None:
+
+        '''Set function name alignment width'''
+
+        if alignWidth is not None and type(alignWidth) is int and alignWidth > 0:
+
+            self.funcAlignWidth = alignWidth
+
+        else:
+
+            self.funcAlignWidth = 8
 
     def __setLogFileSize(self, maxLogSize: any) -> None:
 
@@ -551,16 +565,21 @@ class Logger:
             # Export to console and log file
 
             if loglevel >= self.consoleLogLevel:
-                print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}\t: {message}")
+                consoleFunc = f"{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
+                consoleAlignWidth = self.funcAlignWidth * (len(consoleFunc) // self.funcAlignWidth + 1 if len(consoleFunc) % self.funcAlignWidth != 0 else 0)
+                print(f"[{col}{loglevel.name:5}{Reset}]{consoleFunc:<{consoleAlignWidth}}: {message}")
         
             if loglevel >= self.fileLogLevel:
+
+                fileFunc = f"{self.func} {self.callerName}{callerFunc}({callerLine})"
+                callerAlignWidth = self.funcAlignWidth * (len(fileFunc) // self.funcAlignWidth + 1 if len(fileFunc) % self.funcAlignWidth != 0 else 0)
 
                 for i in range(3):
 
                     try:
 
                         with open(self.logfile, "a", encoding=self.encoding) as f:
-                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine})\t: {message}", file=f)
+                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{fileFunc:<{callerAlignWidth}}: {message}", file=f)
 
                         break
 
