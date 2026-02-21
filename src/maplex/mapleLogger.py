@@ -37,6 +37,8 @@ class Logger:
         self.consoleColors = ConsoleColors()
         self.fileMode = "append" if fileMode is None else fileMode
         self.encoding = encoding
+        self.consoleAlignWidth = 16 # Width for function name alignment in logs (set this in config in future)
+        self.fileAlignWidth = 4 # Width for function name alignment in logs (set this in config in future)
 
         try:
 
@@ -53,6 +55,7 @@ class Logger:
             self.__checkOutputDirectory(workingDirectory)
             self.__setLogFileName(self.fileMode)
             self.__setFuncName(kwargs.get("getLogger", False), func)
+            self.__setAlignWidth(self.consoleAlignWidth, self.fileAlignWidth)
             self.__setLogFileSize(maxLogSize)
             self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
             self.__setFileEncoding(encoding)
@@ -209,6 +212,26 @@ class Logger:
 
             self.func = ""
             self.callerName = f"{caller}."
+
+    def __setAlignWidth(self, consoleAlignWidth: int | None = None, fileAlignWidth: int | None = None) -> None:
+
+        '''Set function name alignment width'''
+
+        if consoleAlignWidth is not None and type(consoleAlignWidth) is int and consoleAlignWidth > 0:
+
+            self.consoleAlignWidth = consoleAlignWidth
+
+        else:
+
+            self.consoleAlignWidth = 16
+
+        if fileAlignWidth is not None and type(fileAlignWidth) is int and fileAlignWidth > 0:
+
+            self.fileAlignWidth = fileAlignWidth
+
+        else:
+
+            self.fileAlignWidth = 4
 
     def __setLogFileSize(self, maxLogSize: any) -> None:
 
@@ -551,16 +574,21 @@ class Logger:
             # Export to console and log file
 
             if loglevel >= self.consoleLogLevel:
-                print(f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset} {message}")
+                consoleFunc = f"{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
+                consoleAlignWidth = self.consoleAlignWidth * (len(consoleFunc) // self.consoleAlignWidth + 1 if len(consoleFunc) % self.consoleAlignWidth != 0 else 0)
+                print(f"[{col}{loglevel.name:5}{Reset}]{consoleFunc:<{consoleAlignWidth}}: {message}")
         
             if loglevel >= self.fileLogLevel:
+
+                fileFunc = f"{self.func} {self.callerName}{callerFunc}({callerLine})"
+                callerAlignWidth = self.fileAlignWidth * (len(fileFunc) // self.fileAlignWidth + 1 if len(fileFunc) % self.fileAlignWidth != 0 else 0)
 
                 for i in range(3):
 
                     try:
 
                         with open(self.logfile, "a", encoding=self.encoding) as f:
-                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine}) {message}", file=f)
+                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{fileFunc:<{callerAlignWidth}}: {message}", file=f)
 
                         break
 
@@ -703,8 +731,7 @@ class Logger:
 
             self.logWriter(logLevel, message, callerDepth=2)
 
-        self.logWriter(logLevel, ex, callerDepth=2)
-        self.logWriter(logLevel, traceback.format_exc(), callerDepth=2)
+        self.logWriter(logLevel, f"{ex}\n{traceback.format_exc()}", callerDepth=2)
 
     #
     ################################
