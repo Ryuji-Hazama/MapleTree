@@ -37,7 +37,8 @@ class Logger:
         self.consoleColors = ConsoleColors()
         self.fileMode = "append" if fileMode is None else fileMode
         self.encoding = encoding
-        self.funcAlignWidth = 8 # Width for function name alignment in logs (set this in config in future)
+        self.consoleAlignWidth = 16 # Width for function name alignment in logs (set this in config in future)
+        self.fileAlignWidth = 4 # Width for function name alignment in logs (set this in config in future)
 
         try:
 
@@ -54,7 +55,7 @@ class Logger:
             self.__checkOutputDirectory(workingDirectory)
             self.__setLogFileName(self.fileMode)
             self.__setFuncName(kwargs.get("getLogger", False), func)
-            self.__setFuncAlignWidth(self.funcAlignWidth)
+            self.__setAlignWidth(self.consoleAlignWidth, self.fileAlignWidth)
             self.__setLogFileSize(maxLogSize)
             self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
             self.__setFileEncoding(encoding)
@@ -212,17 +213,25 @@ class Logger:
             self.func = ""
             self.callerName = f"{caller}."
 
-    def __setFuncAlignWidth(self, alignWidth: int | None = None) -> None:
+    def __setAlignWidth(self, consoleAlignWidth: int | None = None, fileAlignWidth: int | None = None) -> None:
 
         '''Set function name alignment width'''
 
-        if alignWidth is not None and type(alignWidth) is int and alignWidth > 0:
+        if consoleAlignWidth is not None and type(consoleAlignWidth) is int and consoleAlignWidth > 0:
 
-            self.funcAlignWidth = alignWidth
+            self.consoleAlignWidth = consoleAlignWidth
 
         else:
 
-            self.funcAlignWidth = 8
+            self.consoleAlignWidth = 16
+
+        if fileAlignWidth is not None and type(fileAlignWidth) is int and fileAlignWidth > 0:
+
+            self.fileAlignWidth = fileAlignWidth
+
+        else:
+
+            self.fileAlignWidth = 4
 
     def __setLogFileSize(self, maxLogSize: any) -> None:
 
@@ -566,13 +575,13 @@ class Logger:
 
             if loglevel >= self.consoleLogLevel:
                 consoleFunc = f"{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
-                consoleAlignWidth = self.funcAlignWidth * (len(consoleFunc) // self.funcAlignWidth + 1 if len(consoleFunc) % self.funcAlignWidth != 0 else 0)
+                consoleAlignWidth = self.consoleAlignWidth * (len(consoleFunc) // self.consoleAlignWidth + 1 if len(consoleFunc) % self.consoleAlignWidth != 0 else 0)
                 print(f"[{col}{loglevel.name:5}{Reset}]{consoleFunc:<{consoleAlignWidth}}: {message}")
         
             if loglevel >= self.fileLogLevel:
 
                 fileFunc = f"{self.func} {self.callerName}{callerFunc}({callerLine})"
-                callerAlignWidth = self.funcAlignWidth * (len(fileFunc) // self.funcAlignWidth + 1 if len(fileFunc) % self.funcAlignWidth != 0 else 0)
+                callerAlignWidth = self.fileAlignWidth * (len(fileFunc) // self.fileAlignWidth + 1 if len(fileFunc) % self.fileAlignWidth != 0 else 0)
 
                 for i in range(3):
 
