@@ -108,6 +108,14 @@ def runTest():
         dailyLogger = maplex.getDailyLogger("DailyLoggerTest")
         dailyLogger.info("This is a log message from a daily logger.")
 
+        loggerAlignTest = maplex.Logger("AlignTests1234567890123456", cmdLogLevel=DEBUG, fileLogLevel=DEBUG)
+        loggerAlignTest.debug("This is a DEBUG level message to test alignment.")
+        loggerAlignTest.info("This is an INFO level message to test alignment.")
+        loggerAlignTest.warn("This is a WARN level message to test alignment.")
+        loggerAlignTest.error("This is an ERROR level message to test alignment.")
+        loggerAlignTest.fatal("This is a FATAL level message to test alignment.")
+        loggerAlignTest.log("This is a NONE level message to test alignment.")
+
         logger.log("Maple Output Test Completed")
 
     except Exception as e:
