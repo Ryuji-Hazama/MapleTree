@@ -37,6 +37,7 @@ class Logger:
         self.consoleColors = ConsoleColors()
         self.fileMode = "append" if fileMode is None else fileMode
         self.encoding = encoding
+        self.timestampFormat = "%F %X.%f" # Timestamp format for logs (set this in config in future)
         self.consoleAlignWidth = 16 # Width for function name alignment in logs (set this in config in future)
         self.fileAlignWidth = 4 # Width for function name alignment in logs (set this in config in future)
 
@@ -574,21 +575,26 @@ class Logger:
             # Export to console and log file
 
             if loglevel >= self.consoleLogLevel:
-                consoleFunc = f"{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
-                consoleAlignWidth = self.consoleAlignWidth * (len(consoleFunc) // self.consoleAlignWidth + 1 if len(consoleFunc) % self.consoleAlignWidth != 0 else 0)
-                print(f"[{col}{loglevel.name:5}{Reset}]{consoleFunc:<{consoleAlignWidth}}: {message}")
+                consolePrefix = f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
+                colorLength = len(col) + len(Reset) + len(Green) + len(Reset) + len(bBlack) + len(Reset)
+                consolePrefixLength = len(consolePrefix) - colorLength
+                consoleAlignWidth = self.consoleAlignWidth * (consolePrefixLength // self.consoleAlignWidth + (1 if consolePrefixLength % self.consoleAlignWidth != 0 else 0))
+                consoleAlignWidth += colorLength
+                print(f"{consolePrefix:<{consoleAlignWidth}}: {message}")
         
             if loglevel >= self.fileLogLevel:
 
-                fileFunc = f"{self.func} {self.callerName}{callerFunc}({callerLine})"
-                callerAlignWidth = self.fileAlignWidth * (len(fileFunc) // self.fileAlignWidth + 1 if len(fileFunc) % self.fileAlignWidth != 0 else 0)
+                timeStamp = datetime.now().strftime(self.timestampFormat)[:-3]
+                prefixString = f"({self.pid}) {timeStamp} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine})"
+                prefixLength = len(prefixString)
+                alignWidth = self.fileAlignWidth * (prefixLength // self.fileAlignWidth + (1 if prefixLength % self.fileAlignWidth != 0 else 0))
 
                 for i in range(3):
 
                     try:
 
                         with open(self.logfile, "a", encoding=self.encoding) as f:
-                            print(f"({self.pid}) {f"{datetime.now():%F %X.%f}"[:-3]} [{loglevel.name:5}]{fileFunc:<{callerAlignWidth}}: {message}", file=f)
+                            print(f"{prefixString:<{alignWidth}}: {message}", file=f)
 
                         break
 
