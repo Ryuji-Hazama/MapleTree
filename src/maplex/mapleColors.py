@@ -45,3 +45,18 @@ class ConsoleColors(BaseModel):
     Underline: str = "\033[4m"
     Reversed: str = "\033[7m"
     Reset: str = "\033[0m"
+
+    def Color256(self, color_code: int) -> str:
+        """
+        Return the ANSI escape code for a 256-color.
+
+        Parameters:
+        color_code (int): The color code (0-255) for the desired color.
+
+        Returns:
+        str: The ANSI escape code for the specified 256-color.
+        """
+        if 0 <= color_code <= 255:
+            return f"\033[38;5;{color_code}m"
+        else:
+            raise ValueError("Color code must be in the range 0-255.")

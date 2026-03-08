@@ -22,6 +22,7 @@ class Logger:
             fileMode: Literal["append", "overwrite", "daily"] | None = None,
             configFile: str = "config.json",
             encoding: str | None = None,
+            timestampFormat: str | None = None,
             **kwargs
         ) -> None:
 
@@ -37,7 +38,7 @@ class Logger:
         self.consoleColors = ConsoleColors()
         self.fileMode = "append" if fileMode is None else fileMode
         self.encoding = encoding
-        self.timestampFormat = "%F %X.%f" # Timestamp format for logs (set this in config in future)
+        self.timestampFormat = timestampFormat
         self.consoleAlignWidth = 16 # Width for function name alignment in logs (set this in config in future)
         self.fileAlignWidth = 4 # Width for function name alignment in logs (set this in config in future)
 
@@ -60,6 +61,7 @@ class Logger:
             self.__setLogFileSize(maxLogSize)
             self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
             self.__setFileEncoding(encoding)
+            self.__setTimestampFormat(timestampFormat)
             self.__saveLogSettings(logConfInstance)
 
         except Exception as ex:
@@ -89,11 +91,15 @@ class Logger:
         '''Check logger config file and read settings'''
 
         self.CONFIG_KEY = "MapleLogger"
+        self.CONSLE = "Console"
+        self.FILE = "File"
         self.CONSOLE_LOG_LEVEL = "ConsoleLogLevel"
         self.FILE_LOG_LEVEL = "FileLogLevel"
         self.MAX_LOG_SIZE = "MaxLogSize"
         self.WORKING_DIRECTORY = "WorkingDirectory"
         self.FILE_ENCODING = "FileEncoding"
+        self.TIMESTAMP_FORMAT = "TimestampFormat"
+        self.ALIGN_WIDTH = "AlignWidth"
 
         # Set config file path
         
@@ -314,6 +320,25 @@ class Logger:
                 self.logConf[self.FILE_ENCODING] = fileEncoding
 
             self.encoding = fileEncoding
+
+    def __setTimestampFormat(self, timestampFormat: str) -> None:
+
+        """Set timestamp format for logs. Default is "%F %X.%f" (e.g. 2024-06-01 12:34:56.789). You can set this in config file with key "TimestampFormat"."""
+
+        if timestampFormat is not None:
+
+            self.timestampFormat = timestampFormat
+
+        else:
+
+            configTimestampFormat = self.logConf.get(self.TIMESTAMP_FORMAT, None)
+
+            if configTimestampFormat is None:
+
+                configTimestampFormat = "%F %X.%f"
+                self.logConf[self.TIMESTAMP_FORMAT] = configTimestampFormat
+
+            self.timestampFormat = configTimestampFormat
 
     def __saveLogSettings(self, logConfInstance: MapleJson | None) -> None:
 

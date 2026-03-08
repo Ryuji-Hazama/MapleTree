@@ -11,8 +11,6 @@ def runTest():
     try:
 
         LOG_SETTINGS = "MapleLogger"
-        CMD = "CMD"
-        FLE = "FLE"
 
         TRACE = "TRACE"
         DEBUG = "DEBUG"
@@ -25,6 +23,47 @@ def runTest():
         logger = maplex.getLogger(__name__)
         config = maplex.MapleJson("config.json")
         logger.info("Starting Maple Output Test")
+
+        # Color test
+
+        try:
+
+            colors = maplex.ConsoleColors()
+            print(f"{colors.Black}This is black text.{colors.Reset}")
+            print(f"{colors.Red}This is red text.{colors.Reset}")
+            print(f"{colors.Green}This is green text.{colors.Reset}")
+            print(f"{colors.Yellow}This is yellow text.{colors.Reset}")
+            print(f"{colors.Blue}This is blue text.{colors.Reset}")
+            print(f"{colors.Magenta}This is magenta text.{colors.Reset}")
+            print(f"{colors.LightBlue}This is light blue text.{colors.Reset}")
+            print(f"{colors.White}This is white text.{colors.Reset}")
+            print(f"{colors.bgBlack}This is text with black background.{colors.Reset}")
+            print(f"{colors.bgRed}This is text with red background.{colors.Reset}")
+            print(f"{colors.bgGreen}This is text with green background.{colors.Reset}")
+            print(f"{colors.bgYellow}This is text with yellow background.{colors.Reset}")
+            print(f"{colors.bgBlue}This is text with blue background.{colors.Reset}")
+            print(f"{colors.bgMagenta}This is text with magenta background.{colors.Reset}")
+            print(f"{colors.bgLightBlue}This is text with light blue background.{colors.Reset}")
+            print(f"{colors.bgWhite}This is text with white background.{colors.Reset}")
+            print(f"{colors.bBlack}This is bright black text.{colors.Reset}")
+            print(f"{colors.bRed}This is bright red text.{colors.Reset}")
+            print(f"{colors.bGreen}This is bright green text.{colors.Reset}")
+            print(f"{colors.bYellow}This is bright yellow text.{colors.Reset}")
+            print(f"{colors.bBlue}This is bright blue text.{colors.Reset}")
+            print(f"{colors.bMagenta}This is bright magenta text.{colors.Reset}")
+            print(f"{colors.bLightBlue}This is bright light blue text.{colors.Reset}")
+            print(f"{colors.bWhite}This is bright white text.{colors.Reset}")
+            print(f"{colors.Bold}This is bold text.{colors.Reset}")
+            print(f"{colors.Italic}This is italic text.{colors.Reset}")
+            print(f"{colors.Underline}This is underlined text.{colors.Reset}")
+            print(f"{colors.Reversed}This is reversed text.{colors.Reset}")
+
+            for i in range(256):
+                print(f"{colors.Color256(i)}This is 256-color code {i}.{colors.Reset}")
+
+        except Exception as e:
+
+            logger.ShowError(e, "An error occurred during the color test.")
 
         # Change log level to TRACE and output all log levels
 
