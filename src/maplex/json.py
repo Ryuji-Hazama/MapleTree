@@ -203,3 +203,14 @@ def getMapleJson(filePath: str,
                                     key)
 
     return _json[filePath]
+
+""" * * * * * * * * * * * * * """
+"""
+ToDo list:
+
+* Json *
+
+- Enable save nested data with write method (currently only supports writing dicts, need to support lists and other types)
+
+"""
+""" * * * * * * * * * * * * * """

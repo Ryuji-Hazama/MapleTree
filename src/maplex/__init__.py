@@ -52,3 +52,15 @@ __all__ = [
 __version__ = "3.0.1"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"
+
+
+""" * * * * * * * * * * * * * """
+"""
+ToDo list:
+
+* MapleX *
+
+- Restructure MapleX to be more modular and maintainable
+
+"""
+""" * * * * * * * * * * * * * """
