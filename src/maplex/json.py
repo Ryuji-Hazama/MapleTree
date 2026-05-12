@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import base64
@@ -131,15 +132,46 @@ class MapleJson:
         result = self.read(*keys)
         return result if result is not None else default
         
-    def write(self, data: dict) -> None:
+    def write(self, data: any, *keys: str) -> None:
 
         try:
 
-            if type(data) is not dict:
+            if len(keys) > 0:
 
-                raise mExc.MapleTypeException(self.filePath, "Data to write must be a dictionary")
+                # Read existing data to preserve other keys
 
-            jsonData = json.dumps(data, indent=self.indent, ensure_ascii=self.ensureAscii).encode(self.fileEncoding)
+                existingData = self.read() or {}
+
+                # Navigate to the correct location in the nested structure
+
+                currentLevel = existingData
+
+                for i, jsonKey in enumerate(keys):
+
+                    if i == len(keys) - 1:
+
+                        currentLevel[jsonKey] = data
+
+                    else:
+
+                        if jsonKey not in currentLevel or not isinstance(currentLevel[jsonKey], dict):
+
+                            currentLevel[jsonKey] = {}
+
+                        currentLevel = currentLevel[jsonKey]
+
+                dataToWrite = existingData
+
+            else:
+
+                dataToWrite = data
+
+            jsonData = json.dumps(
+                dataToWrite,
+                indent=self.indent,
+                ensure_ascii=self.ensureAscii,
+                default=self.datetimeSerializer
+            ).encode(self.fileEncoding)
 
             if self.encrypt and self.fernet:
 
@@ -186,6 +218,30 @@ class MapleJson:
 
         return key
 
+    def datetimeSerializer(self, obj: any) -> str:
+
+        if isinstance(obj, (datetime.datetime, datetime.date)):
+
+            return obj.isoformat()
+
+        raise TypeError(f"Type {type(obj)} not serializable")
+
+    def datetimeDeserializer(self, obj: str) -> datetime.datetime | datetime.date | str:
+
+        try:
+
+            return datetime.datetime.fromisoformat(obj)
+
+        except ValueError:
+
+            try:
+
+                return datetime.date.fromisoformat(obj)
+
+            except ValueError:
+
+                return obj
+
 _json: dict[str, MapleJson] = {}
 
 # Get or create a MapleJson instance
@@ -214,10 +270,6 @@ def getMapleJson(filePath: str,
 ToDo list:
 
 * Json *
-
-- Enable save nested data with write method (currently only supports writing dicts, need to support lists and other types)
-- Add datetime serialization support while writing using isoformat
-  - Add deserialization method to convert isoformat strings back to datetime objects
 
 """
 """ * * * * * * * * * * * * * """

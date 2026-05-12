@@ -1,0 +1,11 @@
+
+CONFIG_KEY = "MapleLogger"
+CONSOLE = "Console"
+FILE = "File"
+CONSOLE_LOG_LEVEL = "ConsoleLogLevel"
+FILE_LOG_LEVEL = "FileLogLevel"
+MAX_LOG_SIZE = "MaxLogSize"
+WORKING_DIRECTORY = "WorkingDirectory"
+FILE_ENCODING = "FileEncoding"
+TIMESTAMP_FORMAT = "TimestampFormat"
+ALIGN_WIDTH = "AlignWidth"

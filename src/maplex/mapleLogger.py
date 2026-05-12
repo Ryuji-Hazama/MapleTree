@@ -6,7 +6,9 @@ import sys
 import traceback
 from enum import IntEnum
 from typing import Literal
+
 from .json import MapleJson
+from .logger.config import LoggerConfig
 from .mapleColors import ConsoleColors
 from .mapleExceptions import *
 
@@ -29,6 +31,21 @@ class Logger:
         """
         Set a negative value to maxLogSize for an infinite log file size.
         """
+
+        loggerParams = {
+            "func": func,
+            "workingDirectory": workingDirectory,
+            "cmdLogLevel": cmdLogLevel,
+            "fileLogLevel": fileLogLevel,
+            "maxLogSize": maxLogSize,
+            "fileMode": fileMode,
+            "configFile": configFile,
+            "encoding": encoding,
+            "timestampFormat": timestampFormat,
+            "getLogger": kwargs.get("getLogger", False)
+        }
+
+        self.config = LoggerConfig(loggerParams)
 
         self.intMaxValue = 4294967295
         self.consoleLogLevel = -1

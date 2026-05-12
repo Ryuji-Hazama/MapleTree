@@ -58,8 +58,30 @@ def runTest():
             print(f"{colors.Underline}This is underlined text.{colors.Reset}")
             print(f"{colors.Reversed}This is reversed text.{colors.Reset}")
 
-            for i in range(256):
+            for i in range(16):
                 print(f"{colors.Color256(i)}This is 256-color code {i}.{colors.Reset}")
+
+            i = 16
+            for q in range(6):
+
+                j = 0
+                k = i
+
+                for r in range(6):
+
+                    print(f"{colors.Color256(k)}{k:03d}{colors.Reset}", end='')
+                    k += 6
+
+                print()
+                i += 1
+
+                if i == 232:
+                    break
+
+            for i in range(232, 256):
+                print(f"{colors.Color256(i)}{i:03d}{colors.Reset}", end='')
+
+            print()
 
         except Exception as e:
 
