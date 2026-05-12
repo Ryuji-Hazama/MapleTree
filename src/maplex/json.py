@@ -216,6 +216,8 @@ ToDo list:
 * Json *
 
 - Enable save nested data with write method (currently only supports writing dicts, need to support lists and other types)
+- Add datetime serialization support while writing using isoformat
+  - Add deserialization method to convert isoformat strings back to datetime objects
 
 """
 """ * * * * * * * * * * * * * """
