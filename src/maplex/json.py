@@ -87,7 +87,7 @@ class MapleJson:
     #####################
     # Basic File Operations
 
-    def read(self, *keys: str) -> dict | None:
+    def read(self, *keys: str) -> any | None:
 
         try:
 
@@ -125,6 +125,11 @@ class MapleJson:
         except Exception as e:
 
             raise mExc.MapleException(f"Error reading JSON file: {e}")
+
+    def readOrDefault(self, default: any, *keys: str) -> any:
+
+        result = self.read(*keys)
+        return result if result is not None else default
         
     def write(self, data: dict) -> None:
 
