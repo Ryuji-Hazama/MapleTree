@@ -7,6 +7,10 @@ from . import mapleExceptions as mExc
 
 class MapleJson:
 
+    """
+    MapleJson is a utility class for handling JSON files with optional encryption support. It provides methods to read and write JSON data, as well as manage encryption keys.
+    """
+
     def __init__(self,
                  filePath: str,
                  fileEncoding: str = 'utf-8',
@@ -15,6 +19,17 @@ class MapleJson:
                  encrypt: bool = False,
                  key: bytes = None
                  ) -> None:
+
+        """
+        Initialize a MapleJson instance.
+
+        :param filePath: Path to the JSON file.
+        :param fileEncoding: Encoding of the JSON file.
+        :param indent: Indentation level for JSON formatting.
+        :param ensureAscii: Whether to ensure ASCII characters in JSON.
+        :param encrypt: Whether to encrypt the JSON file.
+        :param key: Encryption key for the JSON file.
+        """
 
         self.filePath = filePath
         self.fileEncoding = fileEncoding

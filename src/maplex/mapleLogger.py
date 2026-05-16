@@ -4,15 +4,23 @@ import os
 from os import path
 import sys
 import traceback
-from enum import IntEnum
 from typing import Literal
 
 from .json import MapleJson
-from .logger.config import LoggerConfig
-from .mapleColors import ConsoleColors
+from .library.logger.config import LoggerConfig
+from .library.logger.log_levels import LogLevel
+from .library.logger.utilities import *
 from .mapleExceptions import *
 
 class Logger:
+
+    from .library.logger.utilities import (
+        toLogLevel,
+        toLogSize,
+        isLogLevel
+    )
+
+    LogLevel = LogLevel
 
     def __init__(
             self,
@@ -32,356 +40,29 @@ class Logger:
         Set a negative value to maxLogSize for an infinite log file size.
         """
 
-        loggerParams = {
-            "func": func,
-            "workingDirectory": workingDirectory,
-            "cmdLogLevel": cmdLogLevel,
-            "fileLogLevel": fileLogLevel,
-            "maxLogSize": maxLogSize,
-            "fileMode": fileMode,
-            "configFile": configFile,
-            "encoding": encoding,
-            "timestampFormat": timestampFormat,
-            "getLogger": kwargs.get("getLogger", False)
-        }
-
-        self.config = LoggerConfig(loggerParams)
-
-        self.intMaxValue = 4294967295
-        self.consoleLogLevel = -1
-        self.fileLogLevel = -1
-        self.CWD = os.getcwd()
-        self.pid = os.getpid()
-        self.consoleColors = ConsoleColors()
-        self.fileMode = "append" if fileMode is None else fileMode
-        self.encoding = encoding
-        self.timestampFormat = timestampFormat
-        self.consoleAlignWidth = 16 # Width for function name alignment in logs (set this in config in future)
-        self.fileAlignWidth = 4 # Width for function name alignment in logs (set this in config in future)
-
         try:
-
-            # Check the OS (Windows 10 or older cannot change the console color)
-
-            if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
-
-                self.consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
-                                                bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
-                                                bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
-                                                Bold="", Underline="", Reversed="", Reset="")
-
-            logConfInstance = self.__checkConfigFile(configFile)
-            self.__checkOutputDirectory(workingDirectory)
-            self.__setLogFileName(self.fileMode)
-            self.__setFuncName(kwargs.get("getLogger", False), func)
-            self.__setAlignWidth(self.consoleAlignWidth, self.fileAlignWidth)
-            self.__setLogFileSize(maxLogSize)
-            self.__setOutputLogLevels(cmdLogLevel, fileLogLevel)
-            self.__setFileEncoding(encoding)
-            self.__setTimestampFormat(timestampFormat)
-            self.__saveLogSettings(logConfInstance)
+                
+            loggerParams = {
+                "func": func,
+                "workingDirectory": workingDirectory,
+                "cmdLogLevel": cmdLogLevel,
+                "fileLogLevel": fileLogLevel,
+                "maxLogSize": maxLogSize,
+                "fileMode": fileMode,
+                "configFile": configFile,
+                "encoding": encoding,
+                "timestampFormat": timestampFormat,
+                "getLogger": kwargs.get("getLogger", False),
+                "consoleAlignWidth": kwargs.get("consoleAlignWidth", 16),
+                "fileAlignWidth": kwargs.get("fileAlignWidth", 4)
+            }
+            self.config = LoggerConfig(loggerParams)
+            self.consoleColors = getConsoleColors()
 
         except Exception as ex:
 
             print(f"{self.consoleColors.Red}Error initializing logger: {ex}{self.consoleColors.Reset}")
             raise MapleLoggerException(f"Error initializing logger: {ex}") from ex
-
-    #
-    #####################
-    # Set log level enum
-
-    class LogLevel(IntEnum):
-
-        TRACE = 0
-        DEBUG = 1
-        INFO = 2
-        WARN = 3
-        ERROR = 4
-        FATAL = 5
-        NONE = 6
-
-    ###########################################
-    # Special Methods for Class Initialization
-
-    def __checkConfigFile(self, configFile: str) -> MapleJson | None:
-    
-        '''Check logger config file and read settings'''
-
-        self.CONFIG_KEY = "MapleLogger"
-        self.CONSLE = "Console"
-        self.FILE = "File"
-        self.CONSOLE_LOG_LEVEL = "ConsoleLogLevel"
-        self.FILE_LOG_LEVEL = "FileLogLevel"
-        self.MAX_LOG_SIZE = "MaxLogSize"
-        self.WORKING_DIRECTORY = "WorkingDirectory"
-        self.FILE_ENCODING = "FileEncoding"
-        self.TIMESTAMP_FORMAT = "TimestampFormat"
-        self.ALIGN_WIDTH = "AlignWidth"
-
-        # Set config file path
-        
-        self.configFile = self.__checkFilePath(configFile)
-
-        # Try to read config file
-
-        try:
-
-            logConfInstance = MapleJson(self.configFile)
-
-            if path.isfile(self.configFile):
-
-                confJson = logConfInstance.read()
-
-            else:
-
-                confJson = {}
-
-        except Exception as ex:
-
-            print(f"{self.consoleColors.Red}Warning: Failed to read logger config file: {ex}{self.consoleColors.Reset}")
-            confJson = {}
-            logConfInstance = None
-
-        # Read configuration
-
-        logConf = confJson.get(self.CONFIG_KEY, None)
-
-        if logConf is None:
-
-            logConf = {}
-            logConf[self.CONSOLE_LOG_LEVEL] = "INFO"
-            logConf[self.FILE_LOG_LEVEL] = "INFO"
-            logConf[self.MAX_LOG_SIZE] = 3
-            logConf[self.WORKING_DIRECTORY] = "logs"
-
-        self.logConf = logConf
-        return logConfInstance
-
-    def __checkFilePath(self, filePath: str) -> str:
-
-        '''Check and return absolute file path'''
-
-        if path.isabs(filePath):
-
-            return filePath
-
-        else:
-
-            return path.join(os.getcwd(), filePath)
-
-    def __checkOutputDirectory(self, outputDir: str) -> None:
-
-        '''Check and set output directory'''
-
-        # Check parameter and config file
-
-        if outputDir is not None:
-
-            self.CWD = outputDir
-
-        else:
-
-            self.CWD = self.logConf.get(self.WORKING_DIRECTORY, None)
-
-        # Set absolute path
-
-        if self.CWD in {"", None}:
-
-            self.CWD = path.join(os.getcwd(), "logs")
-            self.logConf[self.WORKING_DIRECTORY] = self.CWD
-
-        elif not path.isabs(self.CWD):
-
-            self.CWD = path.join(os.getcwd(), self.CWD)
-
-        # Check if directory exists
-
-        if not path.isdir(self.CWD):
-
-            os.makedirs(self.CWD)
-
-    def __setLogFileName(self, fileMode: str) -> None:
-
-        '''Set log file name'''
-
-        if fileMode == "daily":
-
-            self.logfile = path.join(self.CWD, f"log_{datetime.now():%Y%m%d}.log")
-        
-        else:
-
-            self.logfile = path.join(self.CWD, "AppLog.log")
-
-    def __setFuncName(self, isGetLogger: bool, func: str | None = None) -> None:
-
-        if isGetLogger:
-
-            caller = inspect.stack()[3].frame.f_globals.get("__name__", "")
-
-        else:
-
-            caller = inspect.stack()[2].frame.f_globals.get("__name__", "")
-
-        if func in {None, ""}:
-
-            self.func = ""
-            self.callerName = ""
-        
-        elif func != caller:
-
-            self.func = f"[{func}]"
-            self.callerName = ""
-
-        else:
-
-            self.func = ""
-            self.callerName = f"{caller}."
-
-    def __setAlignWidth(self, consoleAlignWidth: int | None = None, fileAlignWidth: int | None = None) -> None:
-
-        '''Set function name alignment width'''
-
-        if consoleAlignWidth is not None and type(consoleAlignWidth) is int and consoleAlignWidth > 0:
-
-            self.consoleAlignWidth = consoleAlignWidth
-
-        else:
-
-            self.consoleAlignWidth = 16
-
-        if fileAlignWidth is not None and type(fileAlignWidth) is int and fileAlignWidth > 0:
-
-            self.fileAlignWidth = fileAlignWidth
-
-        else:
-
-            self.fileAlignWidth = 4
-
-    def __setLogFileSize(self, maxLogSize: any) -> None:
-
-        self.maxLogSize = 0
-
-        if maxLogSize is not None:
-
-            self.setMaxLogSize(maxLogSize)
-
-        else:
-
-            try:
-
-                logSize = self.logConf.get(self.MAX_LOG_SIZE, None)
-
-                if logSize is not None:
-
-                    self.setMaxLogSize(logSize)
-
-                else:
-
-                    self.maxLogSize = 3000000
-                    self.logConf[self.MAX_LOG_SIZE] = 3
-
-            except MapleLoggerException as ex:
-
-                print(f"{self.consoleColors.Red}Warning: Invalid MaxLogSize value provided. Using default value.{self.consoleColors.Reset}")
-                self.maxLogSize = 3000000
-
-        if self.maxLogSize == 0:
-
-            print(f"{self.consoleColors.Red}Warning: Infinite log file size is not recommended. Using default value.{self.consoleColors.Reset}")
-            self.maxLogSize = 3000000
-
-    def __setOutputLogLevels(self, cmdLogLevel: any, fileLogLevel: any) -> None:
-
-        self.consoleLogLevel = self.__setLogLevel(self.CONSOLE_LOG_LEVEL, cmdLogLevel)
-        self.fileLogLevel = self.__setLogLevel(self.FILE_LOG_LEVEL, fileLogLevel)
-
-    def __setLogLevel(self, fileOrConsole, loglevel: any) -> LogLevel:
-
-        '''Set log level'''
-
-        if loglevel is not None:
-
-            tempLogLevel = loglevel
-        
-        else:
-
-            tempLogLevel = self.logConf.get(fileOrConsole, "INFO")
-
-            if tempLogLevel is None:
-
-                tempLogLevel = "INFO"
-                self.logConf[fileOrConsole] = tempLogLevel
-
-        try:
-
-            return self.toLogLevel(tempLogLevel)
-
-        except MapleInvalidLoggerLevelException as ex:
-
-            print(f"{self.consoleColors.Red}Warning: Invalid {fileOrConsole} provided: [{tempLogLevel}]. Using default value.{self.consoleColors.Reset}")
-            return self.LogLevel.INFO
-
-    def __setFileEncoding(self, encoding: str) -> None:
-
-        if encoding is not None:
-
-            self.encoding = encoding
-
-        else:
-
-            fileEncoding = self.logConf.get(self.FILE_ENCODING, None)
-
-            if fileEncoding is None:
-
-                fileEncoding = "utf-8"
-                self.logConf[self.FILE_ENCODING] = fileEncoding
-
-            self.encoding = fileEncoding
-
-    def __setTimestampFormat(self, timestampFormat: str) -> None:
-
-        """Set timestamp format for logs. Default is "%F %X.%f" (e.g. 2024-06-01 12:34:56.789). You can set this in config file with key "TimestampFormat"."""
-
-        if timestampFormat is not None:
-
-            self.timestampFormat = timestampFormat
-
-        else:
-
-            configTimestampFormat = self.logConf.get(self.TIMESTAMP_FORMAT, None)
-
-            if configTimestampFormat is None:
-
-                configTimestampFormat = "%F %X.%f"
-                self.logConf[self.TIMESTAMP_FORMAT] = configTimestampFormat
-
-            self.timestampFormat = configTimestampFormat
-
-    def __saveLogSettings(self, logConfInstance: MapleJson | None) -> None:
-
-        """ Save current log settings to config file """
-
-        if logConfInstance is not None:
-
-            try:
-
-                confJson = logConfInstance.read()
-
-            except Exception:
-
-                confJson = {}
-            
-            try:
-
-                confJson[self.CONFIG_KEY] = self.logConf
-                logConfInstance.write(confJson)
-
-            except Exception as ex:
-
-                print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
-
-    # Class initialization ends here
-    #################################
 
     #################################
     # Getters and Setters
@@ -390,13 +71,13 @@ class Logger:
 
         '''Get log file path'''
 
-        return self.logfile
+        return self.config.logfile
     
     def setLogFile(self, logfile: str) -> None:
 
         '''Set log file path'''
 
-        self.logfile = logfile
+        self.config.logfile = logfile
 
     def getConsoleLogLevel(self) -> LogLevel:
 
@@ -406,7 +87,7 @@ class Logger:
         getConsoleLogLevel().name -> str
         '''
 
-        return self.consoleLogLevel
+        return self.config.consoleLogLevel
 
     def setConsoleLogLevel(self, loglevel: any) -> None:
 
@@ -414,7 +95,7 @@ class Logger:
 
         try:
 
-            self.consoleLogLevel = self.toLogLevel(loglevel)
+            self.config.consoleLogLevel = self.toLogLevel(loglevel)
 
         except MapleInvalidLoggerLevelException as ex:
 
@@ -428,7 +109,7 @@ class Logger:
         getFileLogLevel().name -> str
         '''
 
-        return self.fileLogLevel
+        return self.config.fileLogLevel
     
     def setFileLogLevel(self, loglevel: any) -> None:
 
@@ -436,7 +117,7 @@ class Logger:
 
         try:
 
-            self.fileLogLevel = self.toLogLevel(loglevel)
+            self.config.fileLogLevel = self.toLogLevel(loglevel)
 
         except MapleInvalidLoggerLevelException as ex:
 
@@ -446,7 +127,7 @@ class Logger:
 
         '''Get max log size'''
 
-        return self.maxLogSize
+        return self.config.maxLogSize
         
     def setMaxLogSize(self, maxLogSize: any) -> None:
 
@@ -454,93 +135,11 @@ class Logger:
 
         try:
 
-            self.maxLogSize = self.toLogSize(maxLogSize)
+            self.config.maxLogSize = self.toLogSize(maxLogSize)
 
         except MapleLoggerException as ex:
 
             raise MapleLoggerException("Invalid max log size. Log size must be an integer, float or string.") from ex
-
-    #
-    ######################
-    # Convert log size
-
-    def toLogSize(self, logSize: any) -> int:
-
-        '''Convert log size to bytes'''
-
-        if type(logSize) in {int, float}:
-
-            return int(logSize * 1000000)
-
-        elif type(logSize) is str:
-
-            if logSize.lower().endswith("m"):
-
-                return int(float(logSize[:-1]) * 1000000)
-
-            elif logSize.lower().endswith("g"):
-
-                return int(float(logSize[:-1]) * 1000000000)
-
-            else:
-
-                return int(float(logSize) * 1000000)
-        
-        else:
-
-            raise MapleLoggerException(f"Invalid log size type: {type(logSize)}. Log size must be an integer, float or string.")
-
-    #
-    ####################
-    # Convert to log level
-
-    def toLogLevel(self, loglevel: any) -> LogLevel:
-
-        '''Convert to log level'''
-
-        if type(loglevel) is str:
-
-            loglevelClass = self.isLogLevel(loglevel)
-
-            if loglevelClass == -1:
-
-                raise MapleInvalidLoggerLevelException(loglevel, f"Invalid logger level string")
-
-        elif type(loglevel) is int:
-
-            if loglevel < 0 or loglevel > len(self.LogLevel) - 1:
-
-                raise MapleInvalidLoggerLevelException(loglevel, f"Invalid logger level value")
-                
-            else:
-
-                loglevelClass = self.LogLevel(loglevel)
-
-        elif type(loglevel) is not self.LogLevel:
-
-            raise MapleInvalidLoggerLevelException(loglevel,f"Invalid logger level type: {type(loglevel)}")
-
-        else:
-
-            loglevelClass = loglevel
-
-        return loglevelClass
-
-    #
-    ################
-    # Check log level
-
-    def isLogLevel(self, lLStr: str) -> LogLevel:
-
-        '''Check if string is a valid log level'''
-
-        logLevelStr = lLStr.upper()
-
-        for lLevel in self.LogLevel:
-            if logLevelStr == lLevel.name:
-                return lLevel
-
-        return -1
 
     #
     #################################
@@ -554,7 +153,7 @@ class Logger:
 
         # Precheck log level
 
-        if loglevel < self.consoleLogLevel and loglevel < self.fileLogLevel:
+        if loglevel < self.config.consoleLogLevel and loglevel < self.config.fileLogLevel:
 
             return
 
@@ -616,20 +215,20 @@ class Logger:
 
             # Export to console and log file
 
-            if loglevel >= self.consoleLogLevel:
-                consolePrefix = f"[{col}{loglevel.name:5}{Reset}]{Green}{self.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
+            if loglevel >= self.config.consoleLogLevel:
+                consolePrefix = f"[{col}{loglevel.name:5}{Reset}]{Green}{self.config.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
                 colorLength = len(col) + len(Reset) + len(Green) + len(Reset) + len(bBlack) + len(Reset)
                 consolePrefixLength = len(consolePrefix) - colorLength
-                consoleAlignWidth = self.consoleAlignWidth * (consolePrefixLength // self.consoleAlignWidth + (1 if consolePrefixLength % self.consoleAlignWidth != 0 else 0))
+                consoleAlignWidth = self.config.consoleAlignWidth * (consolePrefixLength // self.config.consoleAlignWidth + (1 if consolePrefixLength % self.config.consoleAlignWidth != 0 else 0))
                 consoleAlignWidth += colorLength
                 print(f"{consolePrefix:<{consoleAlignWidth}}: {message}")
         
-            if loglevel >= self.fileLogLevel:
+            if loglevel >= self.config.fileLogLevel:
 
-                timeStamp = datetime.now().strftime(self.timestampFormat)[:-3]
-                prefixString = f"({self.pid}) {timeStamp} [{loglevel.name:5}]{self.func} {self.callerName}{callerFunc}({callerLine})"
+                timeStamp = datetime.now().strftime(self.config.timestampFormat)[:-3]
+                prefixString = f"({self.pid}) {timeStamp} [{loglevel.name:5}]{self.config.func} {self.config.callerName}{callerFunc}({callerLine})"
                 prefixLength = len(prefixString)
-                alignWidth = self.fileAlignWidth * (prefixLength // self.fileAlignWidth + (1 if prefixLength % self.fileAlignWidth != 0 else 0))
+                alignWidth = self.config.fileAlignWidth * (prefixLength // self.config.fileAlignWidth + (1 if prefixLength % self.config.fileAlignWidth != 0 else 0))
 
                 for i in range(3):
 
