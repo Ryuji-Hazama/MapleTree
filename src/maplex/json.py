@@ -103,7 +103,7 @@ class MapleJson:
     #####################
     # Basic File Operations
 
-    def read(self, *keys: str) -> any | None:
+    def read(self, *keys: str) -> object | None:
 
         try:
 
@@ -142,12 +142,12 @@ class MapleJson:
 
             raise mExc.MapleException(f"Error reading JSON file: {e}")
 
-    def readOrDefault(self, default: any, *keys: str) -> any:
+    def readOrDefault(self, default: object, *keys: str) -> object:
 
         result = self.read(*keys)
         return result if result is not None else default
         
-    def write(self, data: any, *keys: str) -> None:
+    def write(self, data: object, *keys: str) -> None:
 
         try:
 
@@ -233,7 +233,7 @@ class MapleJson:
 
         return key
 
-    def datetimeSerializer(self, obj: any) -> str:
+    def datetimeSerializer(self, obj: object) -> str:
 
         if isinstance(obj, (datetime.datetime, datetime.date)):
 

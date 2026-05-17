@@ -7,14 +7,12 @@ import traceback
 from typing import Literal
 
 from .json import MapleJson
-from .library.logger.config import LoggerConfig
-from .library.logger.log_levels import LogLevel
-from .library.logger.utilities import *
+from .library.logger import *
 from .mapleExceptions import *
 
 class Logger:
 
-    from .library.logger.utilities import (
+    from .library.logger import (
         toLogLevel,
         toLogSize,
         isLogLevel
@@ -41,7 +39,8 @@ class Logger:
         """
 
         try:
-                
+
+            self.consoleColors = getConsoleColors()
             loggerParams = {
                 "func": func,
                 "workingDirectory": workingDirectory,
@@ -57,7 +56,6 @@ class Logger:
                 "fileAlignWidth": kwargs.get("fileAlignWidth", 4)
             }
             self.config = LoggerConfig(loggerParams)
-            self.consoleColors = getConsoleColors()
 
         except Exception as ex:
 
@@ -89,13 +87,13 @@ class Logger:
 
         return self.config.consoleLogLevel
 
-    def setConsoleLogLevel(self, loglevel: any) -> None:
+    def setConsoleLogLevel(self, loglevel: object) -> None:
 
         '''Set console log level'''
 
         try:
 
-            self.config.consoleLogLevel = self.toLogLevel(loglevel)
+            self.config.consoleLogLevel = toLogLevel(loglevel)
 
         except MapleInvalidLoggerLevelException as ex:
 
@@ -111,13 +109,13 @@ class Logger:
 
         return self.config.fileLogLevel
     
-    def setFileLogLevel(self, loglevel: any) -> None:
+    def setFileLogLevel(self, loglevel: object) -> None:
 
         '''Set file log level'''
 
         try:
 
-            self.config.fileLogLevel = self.toLogLevel(loglevel)
+            self.config.fileLogLevel = toLogLevel(loglevel)
 
         except MapleInvalidLoggerLevelException as ex:
 
@@ -129,13 +127,13 @@ class Logger:
 
         return self.config.maxLogSize
         
-    def setMaxLogSize(self, maxLogSize: any) -> None:
+    def setMaxLogSize(self, maxLogSize: object) -> None:
 
         '''Set max log size'''
 
         try:
 
-            self.config.maxLogSize = self.toLogSize(maxLogSize)
+            self.config.maxLogSize = toLogSize(maxLogSize)
 
         except MapleLoggerException as ex:
 
@@ -145,7 +143,7 @@ class Logger:
     #################################
     # Logger
 
-    def logWriter(self, loglevel: LogLevel, message: any, callerDepth: int = 1) -> None:
+    def logWriter(self, loglevel: LogLevel, message: object, callerDepth: int = 1) -> None:
 
         """
         Output log to log file and console.
@@ -226,7 +224,7 @@ class Logger:
             if loglevel >= self.config.fileLogLevel:
 
                 timeStamp = datetime.now().strftime(self.config.timestampFormat)[:-3]
-                prefixString = f"({self.pid}) {timeStamp} [{loglevel.name:5}]{self.config.func} {self.config.callerName}{callerFunc}({callerLine})"
+                prefixString = f"({self.config.pid}) {timeStamp} [{loglevel.name:5}]{self.config.func} {self.config.callerName}{callerFunc}({callerLine})"
                 prefixLength = len(prefixString)
                 alignWidth = self.config.fileAlignWidth * (prefixLength // self.config.fileAlignWidth + (1 if prefixLength % self.config.fileAlignWidth != 0 else 0))
 
@@ -234,7 +232,7 @@ class Logger:
 
                     try:
 
-                        with open(self.logfile, "a", encoding=self.encoding) as f:
+                        with open(self.config.logfile, "a", encoding=self.config.encoding) as f:
                             print(f"{prefixString:<{alignWidth}}: {message}", file=f)
 
                         break
@@ -248,26 +246,26 @@ class Logger:
 
             raise MapleLoggerException(f"Failed to write log: {ex}") from ex
 
-        if self.maxLogSize > 0:
+        if self.config.maxLogSize > 0:
 
             # Check file size
 
             try:
 
-                if path.exists(self.logfile) and path.getsize(self.logfile) > self.maxLogSize:
+                if path.exists(self.config.logfile) and path.getsize(self.config.logfile) > self.config.maxLogSize:
 
                     # Rename log file
 
-                    if self.fileMode == "overwrite":
+                    if self.config.fileMode == "overwrite":
 
-                        if path.isfile(f"{self.logfile}_old.log"):
+                        if path.isfile(f"{self.config.logfile}_old.log"):
 
-                            os.remove(f"{self.logfile}_old.log")
+                            os.remove(f"{self.config.logfile}_old.log")
 
-                        os.rename(self.logfile, f"{self.logfile}_old.log")
+                        os.rename(self.config.logfile, f"{self.config.logfile}_old.log")
                         return
 
-                    elif self.fileMode == "daily":
+                    elif self.config.fileMode == "daily":
 
                         dateStr = ""
 
@@ -276,14 +274,14 @@ class Logger:
                         dateStr = f"_{datetime.now():%Y%m%d_%H%M%S}"
                     
                     i = 0
-                    logCopyFile = f"{self.logfile}{dateStr}{i}.log"
+                    logCopyFile = f"{self.config.logfile}{dateStr}{i}.log"
 
                     while path.isfile(logCopyFile):
 
                         i += 1
-                        logCopyFile = f"{self.logfile}{dateStr}{i}.log"
+                        logCopyFile = f"{self.config.logfile}{dateStr}{i}.log"
 
-                    os.rename(self.logfile, logCopyFile)
+                    os.rename(self.config.logfile, logCopyFile)
 
             except Exception as ex:
 
@@ -382,56 +380,19 @@ class Logger:
 
     #
     ################################
-    # Save log settings
+    # Save log settings to config file
 
-    def saveLogSettings(self, configFile: str = None) -> None:
+    def saveLogSettings(self) -> None:
 
-        """Save current log settings to config file"""
-        
+        '''Save current log settings to config file'''
+
         try:
 
-            # Set config file path
+            self.config.saveLogSettings(self.config.logConfInstance)
 
-            if configFile is None:
+        except Exception as ex:
 
-                configFile = self.configFile
-
-            configFilePath = self.__checkFilePath(configFile)
-
-            # Try to read config file
-
-            logConfInstance = MapleJson(configFilePath)
-
-            if path.isfile(configFilePath):
-
-                confJson = logConfInstance.read()
-
-            else:
-
-                confJson = {}
-
-            # Update configuration
-
-            logConf = confJson.get(self.CONFIG_KEY, None)
-
-            if logConf is None:
-
-                logConf = {}
-
-            logConf[self.CONSOLE_LOG_LEVEL] = self.LogLevel(self.consoleLogLevel).name
-            logConf[self.FILE_LOG_LEVEL] = self.LogLevel(self.fileLogLevel).name
-            logConf[self.MAX_LOG_SIZE] = self.maxLogSize / 1000000
-            logConf[self.WORKING_DIRECTORY] = self.CWD
-
-            confJson[self.CONFIG_KEY] = logConf
-
-            # Save config file
-
-            logConfInstance.write(confJson)
-
-        except Exception as e:
-
-            raise MapleLoggerException(f"Error saving logger config file: {e}") from e
+            print(f"{self.consoleColors.Red}Warning: Failed to save log settings to config file: {ex}{self.consoleColors.Reset}")
 
 # Dictionary to hold Logger instances
 

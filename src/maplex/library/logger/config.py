@@ -9,9 +9,10 @@ import os
 from os import path
 from pydantic import BaseModel
 
-from .consts import *
+from src.maplex.mapleColors import ConsoleColors
 from src.maplex.mapleExceptions import *
 from src.maplex.json import MapleJson
+from .consts import *
 from .utilities import *
 from src.maplex.library.logger.log_levels import LogLevel
 
@@ -21,7 +22,7 @@ class LoggerConfig(BaseModel):
     func: str | None = None
     callerName: str | None = None
     workingDirectory: str | None = None
-    cmdLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None
+    consoleLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None
     fileLogLevel: Literal["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL", "NONE"] | None = None
     maxLogSize: int | None = None
     fileMode: Literal["append", "overwrite", "daily"] | None = None
@@ -32,14 +33,21 @@ class LoggerConfig(BaseModel):
     consoleAlignWidth: int | None = None
     fileAlignWidth: int | None = None
 
-    def __init__(self, config: dict[str, any]) -> None:
+    logConfInstance: None = None
+    logConf: dict[str, object] | None = None
+    logfile: str | None = None
+    pid: int = os.getpid()
+
+    consoleColors: ConsoleColors | None = None
+
+    def __init__(self, config: dict[str, object]) -> None:
 
         try:
 
-            self.config = config
+            super().__init__(**config)
             self.consoleColors = getConsoleColors()
 
-            logconfInstance = self.checkConfigFile(config.get(self.CONFIG_FILE, self.configFile))
+            self.logConfInstance = self.checkConfigFile(config.get(CONFIG_FILE, self.configFile))
             self.checkOutputDirectory(config.get(WORKING_DIRECTORY, None))
             self.setLogFileName(config.get(FILE_MODE, "append"))
             self.setFuncName(config.get(GET_LOGGER, False), config.get(FUNC, None))
@@ -48,7 +56,7 @@ class LoggerConfig(BaseModel):
             self.setOutputLogLevels(config.get(CONSOLE_LOG_LEVEL, None), config.get(FILE_LOG_LEVEL, None))
             self.setFileEncoding(config.get(FILE_ENCODING, None))
             self.setTimestampFormat(config.get(TIMESTAMP_FORMAT, None))
-            self.saveLogSettings(logconfInstance)
+            self.saveLogSettings(self.logConfInstance)
 
         except Exception as ex:
 
@@ -117,28 +125,28 @@ class LoggerConfig(BaseModel):
 
         if outputDir is not None:
 
-            self.CWD = outputDir
+            self.workingDirectory = outputDir
 
         else:
 
-            self.CWD = self.logConf.get(WORKING_DIRECTORY, None)
+            self.workingDirectory = self.logConf.get(WORKING_DIRECTORY, None)
 
         # Set absolute path
 
-        if self.CWD in {"", None}:
+        if self.workingDirectory in {"", None}:
 
-            self.CWD = path.join(os.getcwd(), "logs")
-            self.logConf[WORKING_DIRECTORY] = self.CWD
+            self.workingDirectory = path.join(os.getcwd(), "logs")
+            self.logConf[WORKING_DIRECTORY] = self.workingDirectory
 
-        elif not path.isabs(self.CWD):
+        elif not path.isabs(self.workingDirectory):
 
-            self.CWD = path.join(os.getcwd(), self.CWD)
+            self.workingDirectory = path.join(os.getcwd(), self.workingDirectory)
 
         # Check if directory exists
 
-        if not path.isdir(self.CWD):
+        if not path.isdir(self.workingDirectory):
 
-            os.makedirs(self.CWD)
+            os.makedirs(self.workingDirectory)
 
     def setLogFileName(self, fileMode: str) -> None:
 
@@ -146,11 +154,11 @@ class LoggerConfig(BaseModel):
 
         if fileMode == "daily":
 
-            self.logfile = path.join(self.CWD, f"log_{datetime.now():%Y%m%d}.log")
+            self.logfile = path.join(self.workingDirectory, f"log_{datetime.now():%Y%m%d}.log")
         
         else:
 
-            self.logfile = path.join(self.CWD, "AppLog.log")
+            self.logfile = path.join(self.workingDirectory, "AppLog.log")
 
     def setFuncName(self, isGetLogger: bool, func: str | None = None) -> None:
 
@@ -197,7 +205,7 @@ class LoggerConfig(BaseModel):
 
             self.fileAlignWidth = 4
 
-    def setLogFileSize(self, maxLogSize: any) -> None:
+    def setLogFileSize(self, maxLogSize: object) -> None:
 
         self.maxLogSize = 0
 
@@ -209,7 +217,7 @@ class LoggerConfig(BaseModel):
 
             try:
 
-                logSize = self.logConf.get(self.MAX_LOG_SIZE, None)
+                logSize = self.logConf.get(MAX_LOG_SIZE, None)
 
                 if logSize is not None:
 
@@ -218,7 +226,7 @@ class LoggerConfig(BaseModel):
                 else:
 
                     self.maxLogSize = 3000000
-                    self.logConf[self.MAX_LOG_SIZE] = 3
+                    self.logConf[MAX_LOG_SIZE] = 3
 
             except MapleLoggerException as ex:
 
@@ -230,12 +238,12 @@ class LoggerConfig(BaseModel):
             print(f"{self.consoleColors.Red}Warning: Infinite log file size is not recommended. Using default value.{self.consoleColors.Reset}")
             self.maxLogSize = 3000000
 
-    def setOutputLogLevels(self, cmdLogLevel: any, fileLogLevel: any) -> None:
+    def setOutputLogLevels(self, cmdLogLevel: object, fileLogLevel: object) -> None:
 
         self.consoleLogLevel = self.__setLogLevel(CONSOLE_LOG_LEVEL, cmdLogLevel)
         self.fileLogLevel = self.__setLogLevel(FILE_LOG_LEVEL, fileLogLevel)
 
-    def __setLogLevel(self, fileOrConsole, loglevel: any) -> LogLevel:
+    def __setLogLevel(self, fileOrConsole, loglevel: object) -> LogLevel:
 
         '''Set log level'''
 
@@ -269,12 +277,12 @@ class LoggerConfig(BaseModel):
 
         else:
 
-            fileEncoding = self.logConf.get(self.FILE_ENCODING, None)
+            fileEncoding = self.logConf.get(FILE_ENCODING, None)
 
             if fileEncoding is None:
 
                 fileEncoding = "utf-8"
-                self.logConf[self.FILE_ENCODING] = fileEncoding
+                self.logConf[FILE_ENCODING] = fileEncoding
 
             self.encoding = fileEncoding
 
@@ -288,12 +296,12 @@ class LoggerConfig(BaseModel):
 
         else:
 
-            configTimestampFormat = self.logConf.get(self.TIMESTAMP_FORMAT, None)
+            configTimestampFormat = self.logConf.get(TIMESTAMP_FORMAT, None)
 
             if configTimestampFormat is None:
 
                 configTimestampFormat = "%F %X.%f"
-                self.logConf[self.TIMESTAMP_FORMAT] = configTimestampFormat
+                self.logConf[TIMESTAMP_FORMAT] = configTimestampFormat
 
             self.timestampFormat = configTimestampFormat
 
@@ -313,7 +321,7 @@ class LoggerConfig(BaseModel):
             
             try:
 
-                confJson[self.CONFIG_KEY] = self.logConf
+                confJson[CONFIG_KEY] = self.logConf
                 logConfInstance.write(confJson)
 
             except Exception as ex:
@@ -323,7 +331,7 @@ class LoggerConfig(BaseModel):
     ###########################
     # Seters and getters
 
-    def setMaxLogSize(self, maxLogSize: any) -> None:
+    def setMaxLogSize(self, maxLogSize: object) -> None:
 
         '''Set max log size'''
 

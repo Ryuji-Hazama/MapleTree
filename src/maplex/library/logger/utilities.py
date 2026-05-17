@@ -11,24 +11,31 @@ def getConsoleColors() -> ConsoleColors:
 
     '''Get console colors instance'''
 
-    if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
+    try:
 
-        consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
-                                        bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
-                                        bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
-                                        Bold="", Underline="", Reversed="", Reset="")
+        if hasattr(sys, "getwindowsversion") and sys.getwindowsversion().build < 22000:
 
-    else:
+            consoleColors = ConsoleColors(Black="", Red="", Green="", Yellow="", Blue="", Magenta="", LightBlue="", White="",
+                                            bgBlack="", bgRed="", bgGreen="", bgYellow="", bgBlue="", bgMagenta="", bgLightBlue="", bgWhite="",
+                                            bBlack="", bRed="", bGreen="", bYellow="", bBlue="", bMagenta="", bLightBlue="", bWhite="",
+                                            Bold="", Underline="", Reversed="", Reset="")
 
-        consoleColors = ConsoleColors()
+        else:
 
-    return consoleColors
+            consoleColors = ConsoleColors()
+
+        return consoleColors
+
+    except Exception as ex:
+
+        print(f"Error: Failed to initialize console colors: {ex}")
+        raise ex
 
 #
 ####################
 # Convert to log level
 
-def toLogLevel(loglevel: any) -> LogLevel:
+def toLogLevel(loglevel: object) -> LogLevel:
 
     '''Convert object to log level'''
 
@@ -64,7 +71,7 @@ def toLogLevel(loglevel: any) -> LogLevel:
 ######################
 # Convert log size
 
-def toLogSize(logSize: any) -> int:
+def toLogSize(logSize: object) -> int:
 
     '''Convert log size to bytes'''
 
