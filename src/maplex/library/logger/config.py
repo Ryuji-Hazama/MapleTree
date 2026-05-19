@@ -7,14 +7,18 @@ import inspect
 from typing import Literal
 import os
 from os import path
+import pathlib
 from pydantic import BaseModel
+import sys
 
-from src.maplex.mapleColors import ConsoleColors
-from src.maplex.mapleExceptions import *
-from src.maplex.json import MapleJson
+sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
+
+from mapleColors import ConsoleColors
+from mapleExceptions import *
+from jsonHandler import MapleJson
 from .consts import *
 from .utilities import *
-from src.maplex.library.logger.log_levels import LogLevel
+from library.logger.log_levels import LogLevel
 
 
 class LoggerConfig(BaseModel):

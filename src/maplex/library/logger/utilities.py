@@ -1,8 +1,11 @@
+import pathlib
 import sys
 
+sys.path.append(str(pathlib.Path(__file__).parent.parent.parent))
+
 from .log_levels import LogLevel
-from src.maplex.mapleColors import ConsoleColors
-from src.maplex.mapleExceptions import *
+from mapleColors import ConsoleColors
+from mapleExceptions import *
 
 ########################
 # Console colors for cross-platform compatibility
