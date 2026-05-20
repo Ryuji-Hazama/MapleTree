@@ -8,6 +8,11 @@ import base64
 import unittest
 from src.maplex import MapleJson
 
+CANARY_STRINGS = (
+    "MAPLETREE_CANARY_TEST_MAPLEJSON_V1",
+    "MAPLETREE_CANARY_TEST_MAPLEJSON_IO_V1",
+)
+
 class TestMapleJson(unittest.TestCase):
 
     def setUp(self):
@@ -23,6 +28,10 @@ class TestMapleJson(unittest.TestCase):
         """Clean up test environment."""
         if os.path.exists(self.test_file):
             os.remove(self.test_file)
+
+    def test_canary_strings_exist(self):
+        self.assertEqual(len(CANARY_STRINGS), 2)
+        self.assertTrue(all(CANARY_STRINGS))
 
     def test_write_and_read_json(self):
         """Test writing and reading JSON data."""
