@@ -1,6 +1,9 @@
 """
-MapleTree: A Python library for building and managing hierarchical data structures with ease.
 Logger: A simple logging utility for tracking events and debugging.
+MapleJson: A utility for handling JSON data with enhanced features.
+ConsoleColors: A collection of ANSI escape codes for colored console output.
+MapleTree: A Python library for building and managing hierarchical data structures with ease.
+MapleExceptions: A set of custom exceptions for handling specific error cases in the MapleX library.
 """
 
 from .mapleColors import ConsoleColors
@@ -49,6 +52,18 @@ __all__ = [
     'winUnHide'
 ]
 
-__version__ = "3.0.1"
+__version__ = "3.1.0.dev1"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"
+
+
+""" * * * * * * * * * * * * * """
+"""
+ToDo list:
+
+* MapleX *
+
+- Restructure MapleX to be more modular and maintainable
+
+"""
+""" * * * * * * * * * * * * * """

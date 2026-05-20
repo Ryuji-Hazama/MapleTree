@@ -1,0 +1,10 @@
+{
+    "MapleLogger": {
+        "ConsoleLogLevel": "INFO",
+        "FileLogLevel": "INFO",
+        "MaxLogSize": 3.0,
+        "WorkingDirectory": "/home/ryuji/Documents/Python/MapleTree/logs",
+        "FileEncoding": "utf-8",
+        "TimestampFormat": "%F %X.%f"
+    }
+}

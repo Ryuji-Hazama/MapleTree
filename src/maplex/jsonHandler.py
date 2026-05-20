@@ -3,7 +3,7 @@ import json
 import os
 import base64
 from cryptography.fernet import Fernet
-from . import mapleExceptions as mExc
+from mapleExceptions import *
 
 class MapleJson:
 
@@ -85,7 +85,7 @@ class MapleJson:
 
         if encrypt and not key:
 
-            raise mExc.KeyEmptyException(self.filePath)
+            raise KeyEmptyException(self.filePath)
 
         self.key = key
         self.fernet = Fernet(key) if encrypt and key else None
@@ -136,11 +136,11 @@ class MapleJson:
             
         except FileNotFoundError:
 
-            raise mExc.MapleFileNotFoundException(self.filePath)
+            raise MapleFileNotFoundException(self.filePath)
         
         except Exception as e:
 
-            raise mExc.MapleException(f"Error reading JSON file: {e}")
+            raise MapleException(f"Error reading JSON file: {e}")
 
     def readOrDefault(self, default: object, *keys: str) -> object:
 
@@ -148,13 +148,6 @@ class MapleJson:
         return result if result is not None else default
         
     def write(self, data: object, *keys: str) -> None:
-
-        """
-        Writes data to the JSON file. If keys are provided, the data will be nested accordingly.
-
-        :param data: The data to write.
-        :param keys: Optional keys to nest the data under.
-        """
 
         try:
 
@@ -211,7 +204,7 @@ class MapleJson:
 
         except Exception as e:
 
-            raise mExc.MapleException(f"Error writing JSON file: {e}")
+            raise MapleException(f"Error writing JSON file: {e}")
 
     #
     #####################

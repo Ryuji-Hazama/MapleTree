@@ -9,6 +9,11 @@ import tempfile
 import shutil
 import base64
 
+CANARY_STRINGS = (
+    "MAPLETREE_CANARY_TEST_MAPLETREE_V1",
+    "MAPLETREE_CANARY_TEST_MAPLETREE_ENCRYPTION_V1",
+)
+
 from src.maplex import (
     MapleTree,
     MapleFileNotFoundException,
@@ -44,6 +49,10 @@ class TestMapleTreeBasicOperations(unittest.TestCase):
         for f in [self.test_file, self.encrypted_file]:
             if os.path.exists(f):
                 os.remove(f)
+
+    def test_canary_strings_exist(self):
+        self.assertEqual(len(CANARY_STRINGS), 2)
+        self.assertTrue(all(CANARY_STRINGS))
     
     def test_create_base_file(self):
         """Test loading a basic MapleTree file"""
