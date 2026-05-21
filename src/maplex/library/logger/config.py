@@ -168,11 +168,11 @@ class LoggerConfig(BaseModel):
 
         if isGetLogger:
 
-            caller = inspect.stack()[3].frame.f_globals.get("__name__", "")
+            caller = inspect.stack()[4].frame.f_globals.get("__name__", "")
 
         else:
 
-            caller = inspect.stack()[2].frame.f_globals.get("__name__", "")
+            caller = inspect.stack()[3].frame.f_globals.get("__name__", "")
 
         if func in {None, ""}:
 
