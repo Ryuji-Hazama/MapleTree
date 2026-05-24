@@ -3,10 +3,12 @@ Split mapleLogger.py into multiple files for better organization and maintainabi
 """
 
 from .config import LoggerConfig
+from .formatter import Formatter
 from .log_levels import LogLevel
 from .utilities import *
 
 __all__ = [
+    "Formatter",
     "LoggerConfig",
     "LogLevel",
     "getConsoleColors",

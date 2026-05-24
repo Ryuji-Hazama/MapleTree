@@ -36,6 +36,8 @@ class LoggerConfig(BaseModel):
     getLogger: bool | None = None
     consoleAlignWidth: int | None = None
     fileAlignWidth: int | None = None
+    consoleFormat: str = CONSOLE_FORMAT
+    fileFormat: str = FILE_FORMAT
 
     logConfInstance: None = None
     logConf: dict[str, object] | None = None
@@ -49,6 +51,7 @@ class LoggerConfig(BaseModel):
         try:
 
             super().__init__(**config)
+
             self.consoleColors = getConsoleColors()
 
             self.logConfInstance = self.checkConfigFile(config.get(CONFIG_FILE, self.configFile))
@@ -331,6 +334,28 @@ class LoggerConfig(BaseModel):
             except Exception as ex:
 
                 print(f"{self.consoleColors.Red}Warning: Failed to write logger config file: {ex}{self.consoleColors.Reset}")
+
+    def serialize(self) -> dict[str, object]:
+
+        '''Serialize logger config to a dictionary'''
+
+        return {
+            FUNC: self.func,
+            CALLER_NAME: self.callerName,
+            WORKING_DIRECTORY: self.workingDirectory,
+            CONSOLE_LOG_LEVEL: self.consoleLogLevel.name if self.consoleLogLevel else None,
+            FILE_LOG_LEVEL: self.fileLogLevel.name if self.fileLogLevel else None,
+            MAX_LOG_SIZE: self.maxLogSize,
+            FILE_MODE: "daily" if self.logfile and "log_" in self.logfile else "append",
+            FILE_ENCODING: self.encoding,
+            TIMESTAMP_FORMAT: self.timestampFormat,
+            GET_LOGGER: bool(self.func),
+            CONSOLE_ALIGN_WIDTH: self.consoleAlignWidth,
+            FILE_ALIGN_WIDTH: self.fileAlignWidth,
+            CONSOLE_FORMAT: self.consoleFormat,
+            FILE_FORMAT: self.fileFormat,
+            PROCESS_ID: self.pid
+        }
 
     ###########################
     # Seters and getters

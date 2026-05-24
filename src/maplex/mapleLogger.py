@@ -56,6 +56,8 @@ class Logger:
                 "fileAlignWidth": kwargs.get("fileAlignWidth", 4)
             }
             self.config = LoggerConfig(loggerParams)
+            self.formatter = Formatter(self.config.serialize())
+            self.DEFAULT_CALLER_DEPTH = 3
 
         except Exception as ex:
 
@@ -143,7 +145,7 @@ class Logger:
     #################################
     # Logger
 
-    def logWriter(self, loglevel: LogLevel, message: object, callerDepth: int = 1) -> None:
+    def logWriter(self, loglevel: LogLevel, message: object, callerDepth: int = 2) -> None:
 
         """
         Output log to log file and console.
@@ -155,85 +157,24 @@ class Logger:
 
             return
 
-        # Console colors
-
-        Black = self.consoleColors.Black
-        bBlack = self.consoleColors.bBlack
-        Red = self.consoleColors.Red
-        bRed = self.consoleColors.bRed
-        Green = self.consoleColors.Green
-        bLightBlue = self.consoleColors.bLightBlue
-        Bold = self.consoleColors.Bold
-        Italic = self.consoleColors.Italic
-        Reset = self.consoleColors.Reset
-
         try:
-
-            # Get caller informations
-
-            callerFrame = inspect.stack()[callerDepth]
-            callerFunc = callerFrame.function
-            callerLine = callerFrame.lineno
-
-            # Set console color
-
-            match loglevel:
-
-                case self.LogLevel.TRACE:
-
-                    col = bBlack
-
-                case self.LogLevel.DEBUG:
-
-                    col = Green
-
-                case self.LogLevel.INFO:
-
-                    col = bLightBlue
-
-                case self.LogLevel.WARN:
-
-                    col = bRed
-
-                case self.LogLevel.ERROR:
-
-                    col = Red
-
-                case self.LogLevel.FATAL:
-
-                    col = Bold + Red
-
-                case self.LogLevel.NONE:
-
-                    col = Bold + Italic + Black
-
-                case _:
-
-                    col = ""
 
             # Export to console and log file
 
             if loglevel >= self.config.consoleLogLevel:
-                consolePrefix = f"[{col}{loglevel.name:5}{Reset}]{Green}{self.config.func}{Reset} {bBlack}{callerFunc}({callerLine}){Reset}"
-                colorLength = len(col) + len(Reset) + len(Green) + len(Reset) + len(bBlack) + len(Reset)
-                consolePrefixLength = len(consolePrefix) - colorLength
-                consoleAlignWidth = self.config.consoleAlignWidth * (consolePrefixLength // self.config.consoleAlignWidth + (1 if consolePrefixLength % self.config.consoleAlignWidth != 0 else 0))
-                consoleAlignWidth += colorLength
-                print(f"{consolePrefix:<{consoleAlignWidth}}: {message}")
+                consolePrefix = self.formatter.format_console(loglevel, callerDepth)
+                print(f"{consolePrefix}: {message}")
         
             if loglevel >= self.config.fileLogLevel:
 
-                timeStamp = datetime.now().strftime(self.config.timestampFormat)[:-3]
-                prefixString = f"({self.config.pid}) {timeStamp} [{loglevel.name:5}]{self.config.func} {self.config.callerName}{callerFunc}({callerLine})"
-                prefixLength = len(prefixString)
-                alignWidth = self.config.fileAlignWidth * (prefixLength // self.config.fileAlignWidth + (1 if prefixLength % self.config.fileAlignWidth != 0 else 0))
+                prefixString = self.formatter.format_file(loglevel, callerDepth)
 
                 for i in range(3):
 
                     try:
 
                         with open(self.config.logfile, "a", encoding=self.config.encoding) as f:
-                            print(f"{prefixString:<{alignWidth}}: {message}", file=f)
+                            print(f"{prefixString}: {message}", file=f)
 
                         break
 
@@ -295,7 +236,7 @@ class Logger:
 
         '''Trace log'''
 
-        self.logWriter(self.LogLevel.TRACE, object, callerDepth=2)
+        self.logWriter(self.LogLevel.TRACE, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
     #
     ################################
     # Debug
@@ -304,7 +245,7 @@ class Logger:
 
         '''Debug log'''
 
-        self.logWriter(self.LogLevel.DEBUG, object, callerDepth=2)
+        self.logWriter(self.LogLevel.DEBUG, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################
@@ -314,7 +255,7 @@ class Logger:
 
         '''Info log'''
 
-        self.logWriter(self.LogLevel.INFO, object, callerDepth=2)
+        self.logWriter(self.LogLevel.INFO, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################
@@ -324,7 +265,7 @@ class Logger:
 
         '''Warn log'''
 
-        self.logWriter(self.LogLevel.WARN, object, callerDepth=2)
+        self.logWriter(self.LogLevel.WARN, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################
@@ -334,7 +275,7 @@ class Logger:
 
         '''Error log'''
 
-        self.logWriter(self.LogLevel.ERROR, object, callerDepth=2)
+        self.logWriter(self.LogLevel.ERROR, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################
@@ -344,7 +285,7 @@ class Logger:
 
         '''Fatal log'''
 
-        self.logWriter(self.LogLevel.FATAL, object, callerDepth=2)
+        self.logWriter(self.LogLevel.FATAL, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################
@@ -354,7 +295,7 @@ class Logger:
 
         '''None log'''
 
-        self.logWriter(self.LogLevel.NONE, object, callerDepth=2)
+        self.logWriter(self.LogLevel.NONE, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################
@@ -374,9 +315,9 @@ class Logger:
 
         if message is not None:
 
-            self.logWriter(logLevel, message, callerDepth=2)
+            self.logWriter(logLevel, message, callerDepth=self.DEFAULT_CALLER_DEPTH)
 
-        self.logWriter(logLevel, f"{ex}\n{traceback.format_exc()}", callerDepth=2)
+        self.logWriter(logLevel, f"{ex}\n{traceback.format_exc()}", callerDepth=self.DEFAULT_CALLER_DEPTH)
 
     #
     ################################

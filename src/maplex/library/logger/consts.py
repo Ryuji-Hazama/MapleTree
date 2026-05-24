@@ -15,3 +15,11 @@ ALIGN_WIDTH = "AlignWidth"
 GET_LOGGER = "getLogger"
 CONSOLE_ALIGN_WIDTH = "consoleAlignWidth"
 FILE_ALIGN_WIDTH = "fileAlignWidth"
+CONSOLE_FORMAT = "ConsoleFormat"
+FILE_FORMAT = "FileFormat"
+
+CALLER_NAME = "CallerName"
+PROCESS_ID = "pid"
+
+FILE_FORMAT = '({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})'
+CONSOLE_FORMAT = '[{level}]{func} {callerFunc}{callerLine}'
