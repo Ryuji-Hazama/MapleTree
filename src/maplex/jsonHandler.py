@@ -149,6 +149,13 @@ class MapleJson:
         
     def write(self, data: object, *keys: str) -> None:
 
+        """
+        Writes data to the JSON file. If keys are provided, the data will be nested accordingly.
+
+        :param data: The data to write.
+        :param keys: Optional keys to nest the data under.
+        """
+
         try:
 
             if len(keys) > 0:

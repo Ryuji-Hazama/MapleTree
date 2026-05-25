@@ -6,7 +6,7 @@ import sys
 import traceback
 from typing import Literal
 
-from .json import MapleJson
+from .jsonHandler import MapleJson
 from .library.logger import *
 from .mapleExceptions import *
 
