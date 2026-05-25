@@ -1,8 +1,13 @@
-import datetime
-import json
 import os
 import base64
 from cryptography.fernet import Fernet
+import datetime
+import json
+import pathlib
+import sys
+
+sys.path.append(str(pathlib.Path(__file__).parent))
+
 from mapleExceptions import *
 
 class MapleJson:
