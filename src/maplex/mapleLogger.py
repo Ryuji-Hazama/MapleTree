@@ -55,6 +55,11 @@ class Logger:
             }
             self.config = LoggerConfig(loggerParams)
             self.formatter = Formatter(self.config.serialize())
+            self.fileHandler = FileHandler(
+                logFilePath=self.config.logfile,
+                maxFileSize=self.config.maxLogSize,
+                fileMode=self.config.fileMode
+            )
             self.DEFAULT_CALLER_DEPTH = 3
 
         except Exception as ex:
@@ -181,50 +186,11 @@ class Logger:
                         if i == 2:
                             raise
 
+            self.fileHandler.check_file_size()
+
         except Exception as ex:
 
             raise MapleLoggerException(f"Failed to write log: {ex}") from ex
-
-        if self.config.maxLogSize > 0:
-
-            # Check file size
-
-            try:
-
-                if path.exists(self.config.logfile) and path.getsize(self.config.logfile) > self.config.maxLogSize:
-
-                    # Rename log file
-
-                    if self.config.fileMode == "overwrite":
-
-                        if path.isfile(f"{self.config.logfile}_old.log"):
-
-                            os.remove(f"{self.config.logfile}_old.log")
-
-                        os.rename(self.config.logfile, f"{self.config.logfile}_old.log")
-                        return
-
-                    elif self.config.fileMode == "daily":
-
-                        dateStr = ""
-
-                    else:
-
-                        dateStr = f"_{datetime.now():%Y%m%d_%H%M%S}"
-                    
-                    i = 0
-                    logCopyFile = f"{self.config.logfile}{dateStr}{i}.log"
-
-                    while path.isfile(logCopyFile):
-
-                        i += 1
-                        logCopyFile = f"{self.config.logfile}{dateStr}{i}.log"
-
-                    os.rename(self.config.logfile, logCopyFile)
-
-            except Exception as ex:
-
-                raise MapleLoggerException(f"Failed to rotate log file: {ex}") from ex
 
     #
     ################################
