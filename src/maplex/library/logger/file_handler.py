@@ -64,7 +64,7 @@ class FileHandler:
 
         os.rename(self.logFilePath, oldLogFilePath)
 
-    async def check_file_size(self) -> None:
+    def check_file_size(self) -> None:
 
         """
         Check the log file size and create a new log file if the size exceeds the maximum file size.
