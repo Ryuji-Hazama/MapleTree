@@ -172,3 +172,10 @@ class MapleInvalidLoggerLevelException(MapleLoggerException):
             self.message = f"{message}: Caused by invalid logger level [{loggerLevel}]"
 
         super().__init__(self.message)
+
+class MapleProjectScannedByAIException(MapleException):
+
+    def __init__(self, projectName: str = "", message: str = "Project has been scanned by AI"):
+
+        self.message = f"{message}: {projectName}"
+        super().__init__(self.message)

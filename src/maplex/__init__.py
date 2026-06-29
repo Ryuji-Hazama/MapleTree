@@ -7,7 +7,7 @@ MapleExceptions: A set of custom exceptions for handling specific error cases in
 """
 
 from .mapleColors import ConsoleColors
-from .json import MapleJson, getMapleJson
+from .jsonHandler import MapleJson, getMapleJson
 from .mapleLogger import Logger, getLogger, getDailyLogger
 from .mapleExceptions import (
     InvalidMapleFileFormatException,
@@ -52,7 +52,7 @@ __all__ = [
     'winUnHide'
 ]
 
-__version__ = "3.1.0.dev1"
+__version__ = "3.1.0"
 __author__ = "Ryuji Hazama"
 __license__ = "MIT"
 

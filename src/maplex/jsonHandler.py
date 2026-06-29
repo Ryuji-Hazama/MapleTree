@@ -1,8 +1,13 @@
-import datetime
-import json
 import os
 import base64
 from cryptography.fernet import Fernet
+import datetime
+import json
+import pathlib
+import sys
+
+sys.path.append(str(pathlib.Path(__file__).parent))
+
 from mapleExceptions import *
 
 class MapleJson:
@@ -148,6 +153,13 @@ class MapleJson:
         return result if result is not None else default
         
     def write(self, data: object, *keys: str) -> None:
+
+        """
+        Writes data to the JSON file. If keys are provided, the data will be nested accordingly.
+
+        :param data: The data to write.
+        :param keys: Optional keys to nest the data under.
+        """
 
         try:
 
