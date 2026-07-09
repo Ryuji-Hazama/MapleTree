@@ -216,7 +216,7 @@ class Formatter:
         if '{callerLine}' in fileFormat:
 
             callerLine = callerFrame.lineno
-            fileFormat = fileFormat.replace('{callerLine}', f'({callerLine})')
+            fileFormat = fileFormat.replace('{callerLine}', f'{callerLine}')
 
         alignStep = self.config.get(FILE_ALIGN_WIDTH, 1)
         alignWidth = alignStep * (len(fileFormat) // alignStep + (1 if len(fileFormat) % alignStep != 0 else 0))

@@ -210,6 +210,26 @@ print(jsonData)
 {'data1': 'value1', 'data2': 67890}
 ```
 
+## `readOrDefault()`
+
+```python
+readOrDefault(
+    default: object,
+    *keys: str
+) -> object:
+```
+
+&nbsp;&nbsp;&nbsp;&nbsp;`x3.1.0` or later.
+
+|Property|Required|Value|Version|
+|--------|--------|-----|-------|
+|**`default`**|\*|Default value to return if key does not exist|3.1.0|
+|**`*keys`**||Dict keys|3.1.0|
+
+&nbsp;&nbsp;&nbsp;&nbsp;This function reads a JSON file, which is specified at the class instance, and returns the data.
+
+&nbsp;&nbsp;&nbsp;&nbsp;If the key(s) does not exist, it returns the `default` value.
+
 ### `write()`
 
 ```python
