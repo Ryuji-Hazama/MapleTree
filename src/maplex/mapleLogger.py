@@ -235,21 +235,33 @@ class Logger:
     ################################
     # Error
 
-    def error(self, object: any):
+    def error(self, object: any, exception: Exception | None = None):
 
         '''Error log'''
 
-        self.logWriter(self.LogLevel.ERROR, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
+        if exception is None:
+
+            self.logWriter(self.LogLevel.ERROR, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
+
+        else:
+
+            self.ShowError(exception, message=f"{object}", fatal=False, additionalCallerDepth=1)
 
     #
     ################################
     # Fatal
 
-    def fatal(self, object: any):
+    def fatal(self, object: any, exception: Exception | None = None):
 
         '''Fatal log'''
 
-        self.logWriter(self.LogLevel.FATAL, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
+        if exception is None:
+
+            self.logWriter(self.LogLevel.FATAL, object, callerDepth=self.DEFAULT_CALLER_DEPTH)
+
+        else:
+
+            self.ShowError(exception, message=f"{object}", fatal=True, additionalCallerDepth=1)
 
     #
     ################################
@@ -265,7 +277,7 @@ class Logger:
     ################################
     # Error messages
 
-    def ShowError(self, ex: Exception, message: str | None = None, fatal: bool = False):
+    def ShowError(self, ex: Exception, message: str | None = None, fatal: bool = False, additionalCallerDepth: int = 0) -> None:
 
         '''Show and log error'''
 
@@ -279,9 +291,9 @@ class Logger:
 
         if message is not None:
 
-            self.logWriter(logLevel, message, callerDepth=self.DEFAULT_CALLER_DEPTH)
+            self.logWriter(logLevel, message, callerDepth=self.DEFAULT_CALLER_DEPTH + additionalCallerDepth)
 
-        self.logWriter(logLevel, f"{ex}\n{traceback.format_exc()}", callerDepth=self.DEFAULT_CALLER_DEPTH)
+        self.logWriter(logLevel, f"{ex}\n{traceback.format_exc()}", callerDepth=self.DEFAULT_CALLER_DEPTH + additionalCallerDepth)
 
     #
     ################################

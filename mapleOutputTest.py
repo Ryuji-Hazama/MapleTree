@@ -5,6 +5,7 @@ configuration modification effects of the mapleLogger module.
 
 import datetime
 import src.maplex as maplex
+from test_class.testClass import TestLogger
 
 def runTest():
 
@@ -176,6 +177,10 @@ def runTest():
         loggerAlignTest.error("This is an ERROR level message to test alignment.")
         loggerAlignTest.fatal("This is a FATAL level message to test alignment.")
         loggerAlignTest.log("This is a NONE level message to test alignment.")
+
+        # Namespace specific log level test
+
+        TestLogger().log_messages()
 
         logger.log("Maple Output Test Completed")
 

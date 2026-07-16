@@ -140,7 +140,8 @@ Auto-generated configuration file (parameters not specified):
         "FileLogLevel": "INFO",
         "MaxLogSize": 3.0,
         "WorkingDirectory": "/path/to/output/logs",
-        "FileEncoding": "utf-8"
+        "FileEncoding": "utf-8",
+        "TimestampFormat": "%F %X.%f"
     }
 }
 ```
@@ -152,7 +153,36 @@ Auto-generated configuration file (parameters not specified):
 |**`MaxLogSize`**|Log file max size (MB)|
 |**`WorkingDirectory`**|Log file output path|
 |**`FileEncoding`**|Log file encoding|
+|**`TimestampFormat`**|Log timestamp format|
+|**`NameSpaces`**|Namespace specific log level settings|
 
 - To disable the log output, set the log level to `NONE`.
 - You can use a `float` number for the file max size (E.g., `2.5` for `2.5MB`)
 - You can also use a `str` for the file max size (E.g., `"3M"`)
+- You can set the timestamp format with the `TimestampFormat` key. The default format is `%F %X.%f`, which outputs the timestamp as `yyyy-MM-dd HH:mm:ss.fff`. You can use any valid Python datetime format string.
+
+### Namespace Specific Log Level Settings
+
+- You can set the log level for specific namespaces by adding a `NameSpaces` key in the configuration file.
+- The `NameSpaces` key is a list of dictionaries, where each dictionary contains a `NameSpace`, a `ConsoleLogLevel`, and a `FileLogLevel`.
+
+Example:
+
+```json
+{
+    "MapleLogger": {
+        "ConsoleLogLevel": "INFO",
+        "FileLogLevel": "INFO",
+        "NameSpaces": [
+            {
+                "NameSpace": "MyNamespace",
+                "ConsoleLogLevel": "DEBUG",
+                "FileLogLevel": "INFO"
+            }
+        ]
+    }
+}
+```
+
+- In this example, the log level for the `MyNamespace` namespace is set to `DEBUG` for console output and `INFO` for file output. All other namespaces will use the default log levels specified in the `ConsoleLogLevel` and `FileLogLevel` keys.
+- You can use this setting to control the log output for different parts of your application, allowing you to have more detailed logs for specific namespaces while keeping the overall log output at a higher level.

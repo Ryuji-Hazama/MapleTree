@@ -101,7 +101,7 @@
 
 ### `NONE`
 
-&nbsp;&nbsp;&nbsp;&nbsp;The `NONE` level is a special level in `MapleX` that not commonly exists in other logging libraries. It is used to bypass all the log level filters and always output the log, or suppress all other log levels if you set this in the logger configuration. This is useful for debugging in production environments, where you want to log a specific event, but don't want to log any other lower level events under the same logger configuration. For example, you can set the log level to `NONE` for a specific logger to always log suspicious events, while setting the log level to `WARNING` for other loggers to only log warnings and errors.
+&nbsp;&nbsp;&nbsp;&nbsp;The `NONE` level is a special level in `MapleX` that not commonly exists in other logging libraries. It is used to bypass all the log level filters and always output the log, or suppress all other log levels if you set this in the logger configuration. This is useful for debugging in production environments, where you want to log a specific event, but don't want to log any other lower level events under the same logger configuration. For example, you can set the log level to `NONE` for a specific logger to always log suspicious events, while setting the log level to `WARN` for other loggers to only log warnings and errors.
 
 ## Conclusion
 

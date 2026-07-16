@@ -245,10 +245,26 @@ class LoggerConfig(BaseModel):
             print(f"{self.consoleColors.Red}Warning: Infinite log file size is not recommended. Using default value.{self.consoleColors.Reset}")
             self.maxLogSize = 3000000
 
+    def getLogLevel(self) -> None:
+
+        '''
+        Get LogLevel configuration from config file.
+        Set namespace specific LogLevel if available, otherwise set default LogLevel.
+        '''
+
+        namespaceSettings = self.logConf.get(NAME_SPACES, [])
+        thisNamespaceSettings = next((ns for ns in namespaceSettings if ns.get(NAME_SPACE) == self.callerName), None)
+
+        if thisNamespaceSettings is not None:
+
+            self.consoleLogLevel = thisNamespaceSettings.get(CONSOLE_LOG_LEVEL, None)
+            self.fileLogLevel = thisNamespaceSettings.get(FILE_LOG_LEVEL, None)
+
     def setOutputLogLevels(self, cmdLogLevel: object, fileLogLevel: object) -> None:
 
-        self.consoleLogLevel = self.__setLogLevel(CONSOLE_LOG_LEVEL, cmdLogLevel)
-        self.fileLogLevel = self.__setLogLevel(FILE_LOG_LEVEL, fileLogLevel)
+        self.getLogLevel()
+        self.consoleLogLevel = self.__setLogLevel(CONSOLE_LOG_LEVEL, cmdLogLevel if self.consoleLogLevel is None else self.consoleLogLevel)
+        self.fileLogLevel = self.__setLogLevel(FILE_LOG_LEVEL, fileLogLevel if self.fileLogLevel is None else self.fileLogLevel)
 
     def __setLogLevel(self, fileOrConsole, loglevel: object) -> LogLevel:
 
@@ -260,7 +276,7 @@ class LoggerConfig(BaseModel):
         
         else:
 
-            tempLogLevel = self.logConf.get(fileOrConsole, "INFO")
+            tempLogLevel = self.logConf.get(fileOrConsole, None)
 
             if tempLogLevel is None:
 

@@ -5,6 +5,18 @@
         "MaxLogSize": 3.0,
         "WorkingDirectory": "/home/ryuji/Documents/Python/MapleTree/logs",
         "FileEncoding": "utf-8",
-        "TimestampFormat": "%F %X.%f"
+        "TimestampFormat": "%F %X.%f",
+        "NameSpaces": [
+            {
+                "NameSpace": "__main__.",
+                "ConsoleLogLevel": "INFO",
+                "FileLogLevel": "INFO"
+            },
+            {
+                "NameSpace": "sampleClass.",
+                "ConsoleLogLevel": "DEBUG",
+                "FileLogLevel": "INFO"
+            }
+        ]
     }
 }
