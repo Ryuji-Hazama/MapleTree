@@ -21,6 +21,17 @@ from .utilities import *
 from library.logger.log_levels import LogLevel
 
 
+class TimeStamp(BaseModel):
+
+    format: str | None = None
+    digits: int | None = None
+
+class Formats(BaseModel):
+
+    consoleFormat: str | None = None
+    fileFormat: str | None = None
+    timestamp: TimeStamp | None = None
+
 class LoggerConfig(BaseModel):
 
     func: str | None = None
@@ -32,12 +43,10 @@ class LoggerConfig(BaseModel):
     fileMode: Literal["append", "overwrite", "daily"] | None = None
     configFile: str = "config.json"
     encoding: str | None = None
-    timestampFormat: str | None = None
     getLogger: bool | None = None
     consoleAlignWidth: int | None = None
     fileAlignWidth: int | None = None
-    consoleFormat: str = CONSOLE_FORMAT
-    fileFormat: str = FILE_FORMAT
+    formats: Formats | None = None
 
     logConfInstance: None = None
     logConf: dict[str, object] | None = None
@@ -52,6 +61,7 @@ class LoggerConfig(BaseModel):
 
             super().__init__(**config)
 
+            print("Initializing logger config...")
             self.consoleColors = getConsoleColors()
 
             self.logConfInstance = self.checkConfigFile(config.get(CONFIG_FILE, self.configFile))
@@ -62,11 +72,13 @@ class LoggerConfig(BaseModel):
             self.setLogFileSize(config.get(MAX_LOG_SIZE, None))
             self.setOutputLogLevels(config.get(CONSOLE_LOG_LEVEL, None), config.get(FILE_LOG_LEVEL, None))
             self.setFileEncoding(config.get(FILE_ENCODING, None))
-            self.setTimestampFormat(config.get(TIMESTAMP_FORMAT, None))
+            self.setTimestampFormat(config.get(PARAM_TIMESTAMP, None))
+            self.setOutputFormat(config.get(CONSOLE_LOG_FORMAT, None), config.get(FILE_LOG_FORMAT, None))
             self.saveLogSettings(self.logConfInstance)
 
         except Exception as ex:
 
+            print(ex)
             print(f"{self.consoleColors.Red}Error: Failed to initialize logger config: {ex}{self.consoleColors.Reset}")
             raise ex
 
@@ -309,24 +321,81 @@ class LoggerConfig(BaseModel):
 
             self.encoding = fileEncoding
 
-    def setTimestampFormat(self, timestampFormat: str) -> None:
+    def setTimestampFormat(self, timestampFormat: dict) -> None:
 
         """Set timestamp format for logs. Default is "%F %X.%f" (e.g. 2024-06-01 12:34:56.789). You can set this in config file with key "TimestampFormat"."""
 
+        if self.formats is None:
+
+            self.formats = Formats()
+
+        if self.formats.timestamp is None:
+
+            self.formats.timestamp = TimeStamp()
+
         if timestampFormat is not None:
 
-            self.timestampFormat = timestampFormat
+            self.formats.timestamp.format = timestampFormat.get(FORMAT, None)
+            self.formats.timestamp.digits = timestampFormat.get(DIGITS, 3)
 
         else:
 
-            configTimestampFormat = self.logConf.get(TIMESTAMP_FORMAT, None)
+            timestampSettings = self.logConf.get(FORMATS, {}).get(TIMESTAMP, {})
+            configTimestampFormat = timestampSettings.get(FORMAT, None)
+            configTimestampDigits = timestampSettings.get(DIGITS, None)
 
             if configTimestampFormat is None:
 
-                configTimestampFormat = "%F %X.%f"
-                self.logConf[TIMESTAMP_FORMAT] = configTimestampFormat
+                configTimestampFormat = TIMESTAMP_FORMAT
+                timestampSettings[FORMAT] = configTimestampFormat
+                self.logConf.setdefault(FORMATS, {})[TIMESTAMP] = timestampSettings
 
-            self.timestampFormat = configTimestampFormat
+            if configTimestampDigits is None:
+
+                configTimestampDigits = MILLISECOND_DIGITS
+                timestampSettings[DIGITS] = configTimestampDigits
+                self.logConf.setdefault(FORMATS, {})[TIMESTAMP] = timestampSettings
+
+            self.formats.timestamp.format = configTimestampFormat
+            self.formats.timestamp.digits = configTimestampDigits
+
+    def setOutputFormat(self, consoleFormat: str, fileFormat: str) -> None:
+
+        """Set output format for console and file logs. Default is "[{level}]{func} {callerFunc}{callerLine}" for console and "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})" for file. You can set this in config file with keys "ConsoleLogFormat" and "FileLogFormat"."""
+
+        if self.formats is None:
+
+            self.formats = Formats()
+
+        if consoleFormat is not None:
+
+            self.formats.consoleFormat = consoleFormat
+
+        else:
+
+            self.formats.consoleFormat = self.logConf.get(CONSOLE_LOG_FORMAT, None)
+
+            if self.formats.consoleFormat is None:
+
+                self.formats.consoleFormat = CONSOLE_FORMAT
+                formatConf = self.logConf.get(FORMATS, {})
+                formatConf[CONSOLE_LOG_FORMAT] = CONSOLE_FORMAT
+                self.logConf[FORMATS] = formatConf
+
+        if fileFormat is not None:
+
+            self.formats.fileFormat = fileFormat
+
+        else:
+
+            self.formats.fileFormat = self.logConf.get(FILE_LOG_FORMAT, None)
+
+            if self.formats.fileFormat is None:
+
+                self.formats.fileFormat = FILE_FORMAT
+                formatConf = self.logConf.get(FORMATS, {})
+                formatConf[FILE_LOG_FORMAT] = FILE_FORMAT
+                self.logConf[FORMATS] = formatConf
 
     def saveLogSettings(self, logConfInstance: MapleJson | None) -> None:
 
@@ -364,12 +433,12 @@ class LoggerConfig(BaseModel):
             MAX_LOG_SIZE: self.maxLogSize,
             FILE_MODE: "daily" if self.logfile and "log_" in self.logfile else "append",
             FILE_ENCODING: self.encoding,
-            TIMESTAMP_FORMAT: self.timestampFormat,
+            TIMESTAMP: self.formats.timestamp if self.formats.timestamp else None,
             GET_LOGGER: bool(self.func),
             CONSOLE_ALIGN_WIDTH: self.consoleAlignWidth,
             FILE_ALIGN_WIDTH: self.fileAlignWidth,
-            CONSOLE_FORMAT: self.consoleFormat,
-            FILE_FORMAT: self.fileFormat,
+            PARAM_CONSOLE_FORMAT: self.formats.consoleFormat,
+            PARAM_FILE_FORMAT: self.formats.fileFormat,
             PROCESS_ID: self.pid
         }
 

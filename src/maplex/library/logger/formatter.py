@@ -29,8 +29,8 @@ class Formatter:
         self.consoleColors = getConsoleColors()
         self.logLevel = LogLevel
         self.config = config
-        self.consoleFormat = config.get(CONSOLE_FORMAT, CONSOLE_FORMAT)
-        self.fileFormat = config.get(FILE_FORMAT, FILE_FORMAT)
+        self.consoleFormat = config.get(PARAM_CONSOLE_FORMAT, CONSOLE_FORMAT)
+        self.fileFormat = config.get(PARAM_FILE_FORMAT, FILE_FORMAT)
         self.pid = os.getpid()
         self.COLOR_CODE_LENGTH = 5
         self.COLOR_CODE_RESET_LENGTH = 4
@@ -142,7 +142,7 @@ class Formatter:
 
         if '{timestamp}' in consoleFormat:
 
-            timestamp = self.__getCurrentTimestamp(self.config.get(TIMESTAMP_FORMAT, '%Y-%m-%d %H:%M:%S'))
+            timestamp = self.__getCurrentTimestamp(self.config.get(FORMATS, {}).get(TIMESTAMP, {}).get(FORMAT, TIMESTAMP_FORMAT))
             consoleFormat = consoleFormat.replace('{timestamp}', timestamp)
 
         if '{level}' in consoleFormat:
@@ -193,7 +193,7 @@ class Formatter:
 
         if '{timestamp}' in fileFormat:
 
-            timestamp = self.__getCurrentTimestamp(self.config.get(TIMESTAMP_FORMAT, '%Y-%m-%d %H:%M:%S'))
+            timestamp = self.__getCurrentTimestamp(self.config.get(FORMATS, {}).get(TIMESTAMP, {}).get(FORMAT, TIMESTAMP_FORMAT))
             fileFormat = fileFormat.replace('{timestamp}', timestamp)
 
         if '{level}' in fileFormat:

@@ -5,7 +5,10 @@
         "MaxLogSize": 3.0,
         "WorkingDirectory": "/home/ryuji/Documents/Python/MapleTree/logs",
         "FileEncoding": "utf-8",
-        "TimestampFormat": "%F %X.%f",
+        "Timestamp": {
+            "Format": "%F %X.%f",
+            "Digits": 3
+        },
         "NameSpaces": [
             {
                 "NameSpace": "__main__.",

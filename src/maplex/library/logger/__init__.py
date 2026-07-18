@@ -2,7 +2,7 @@
 Split mapleLogger.py into multiple files for better organization and maintainability.
 """
 
-from .config import LoggerConfig
+from .config import LoggerConfig, TimeStamp
 from .file_handler import FileHandler
 from .formatter import Formatter
 from .log_levels import LogLevel
@@ -14,6 +14,7 @@ __all__ = [
     "LoggerConfig",
     "LogLevel",
     "getConsoleColors",
+    "TimeStamp",
     "toLogLevel",
     "toLogSize",
     "isLogLevel"

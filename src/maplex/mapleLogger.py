@@ -28,7 +28,7 @@ class Logger:
             fileMode: Literal["append", "overwrite", "daily"] | None = None,
             configFile: str = "config.json",
             encoding: str | None = None,
-            timestampFormat: str | None = None,
+            timestamp: TimeStamp | None = None,
             **kwargs
         ) -> None:
 
@@ -48,7 +48,7 @@ class Logger:
                 "fileMode": fileMode,
                 "configFile": configFile,
                 "encoding": encoding,
-                "timestampFormat": timestampFormat,
+                "timestamp": timestamp,
                 "getLogger": kwargs.get("getLogger", False),
                 "consoleAlignWidth": kwargs.get("consoleAlignWidth", 16),
                 "fileAlignWidth": kwargs.get("fileAlignWidth", 4)
@@ -389,9 +389,9 @@ ToDo list:
 
 * Logger *
 
-- Add option to set date format
-- Add set* functions
 - Configure log format in config file
+- Configure mili sec digits
+- Add set* functions
 
 """
 """ * * * * * * * * * * * * * """
