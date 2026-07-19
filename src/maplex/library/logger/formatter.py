@@ -7,6 +7,7 @@ from datetime import datetime
 import inspect
 import os
 
+from .config import TimeStamp
 from .consts import *
 from .log_levels import *
 from .utilities import *
@@ -31,6 +32,8 @@ class Formatter:
         self.config = config
         self.consoleFormat = config.get(PARAM_CONSOLE_FORMAT, CONSOLE_FORMAT)
         self.fileFormat = config.get(PARAM_FILE_FORMAT, FILE_FORMAT)
+        self.timestampFormat = self.config.get(TIMESTAMP, TimeStamp()).timestampFormat or TIMESTAMP_FORMAT
+        self.timestampDigits = config.get(TIMESTAMP, TimeStamp()).digits or MILLISECOND_DIGITS
         self.pid = os.getpid()
         self.COLOR_CODE_LENGTH = 5
         self.COLOR_CODE_RESET_LENGTH = 4
@@ -69,7 +72,7 @@ class Formatter:
 
         return colorCodeLength
 
-    def __getCurrentTimestamp(self, timestampFormat: str) -> str:
+    def __getCurrentTimestamp(self) -> str:
 
         """
         Get the current timestamp formatted according to the specified format string.
@@ -78,7 +81,7 @@ class Formatter:
         :return: The current timestamp as a formatted string.
         """
 
-        return datetime.now().strftime(timestampFormat)
+        return datetime.now().strftime(self.timestampFormat)[:self.timestampDigits]
 
     def __getLogLevelColor(self, logLevel: LogLevel) -> str:
 
@@ -142,7 +145,7 @@ class Formatter:
 
         if '{timestamp}' in consoleFormat:
 
-            timestamp = self.__getCurrentTimestamp(self.config.get(FORMATS, {}).get(TIMESTAMP, {}).get(FORMAT, TIMESTAMP_FORMAT))
+            timestamp = self.__getCurrentTimestamp()
             consoleFormat = consoleFormat.replace('{timestamp}', timestamp)
 
         if '{level}' in consoleFormat:
@@ -193,7 +196,7 @@ class Formatter:
 
         if '{timestamp}' in fileFormat:
 
-            timestamp = self.__getCurrentTimestamp(self.config.get(FORMATS, {}).get(TIMESTAMP, {}).get(FORMAT, TIMESTAMP_FORMAT))
+            timestamp = self.__getCurrentTimestamp()
             fileFormat = fileFormat.replace('{timestamp}', timestamp)
 
         if '{level}' in fileFormat:

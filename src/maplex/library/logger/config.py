@@ -23,7 +23,7 @@ from library.logger.log_levels import LogLevel
 
 class TimeStamp(BaseModel):
 
-    format: str | None = None
+    timestampFormat: str | None = None
     digits: int | None = None
 
 class Formats(BaseModel):
@@ -335,7 +335,7 @@ class LoggerConfig(BaseModel):
 
         if timestampFormat is not None:
 
-            self.formats.timestamp.format = timestampFormat.get(FORMAT, None)
+            self.formats.timestamp.timestampFormat = timestampFormat.get(FORMAT, None)
             self.formats.timestamp.digits = timestampFormat.get(DIGITS, 3)
 
         else:
@@ -356,7 +356,12 @@ class LoggerConfig(BaseModel):
                 timestampSettings[DIGITS] = configTimestampDigits
                 self.logConf.setdefault(FORMATS, {})[TIMESTAMP] = timestampSettings
 
-            self.formats.timestamp.format = configTimestampFormat
+            if "TimestampFormat" in self.logConf:
+
+                # Show warning if old config key is used
+                print(f"{self.consoleColors.Yellow}Warning: 'TimestampFormat' key in config file is deprecated. Please use 'Formats.Timestamp' instead.{self.consoleColors.Reset}\nMore details: https://github.com/Ryuji-Hazama/MapleTree/blob/main/readmes/README_Logger.md#settings")
+
+            self.formats.timestamp.timestampFormat = configTimestampFormat
             self.formats.timestamp.digits = configTimestampDigits
 
     def setOutputFormat(self, consoleFormat: str, fileFormat: str) -> None:

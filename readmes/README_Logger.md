@@ -67,9 +67,11 @@ def trace(object: any) -> None:
 def debug(object: any) -> None:
 def info(object: any) -> None:
 def warn(object: any) -> None:
-def error(object: any) -> None:
-def fatal(object: any) -> None:
+def error(object: any, exception: Exception | None = None) -> None:
+def fatal(object: any, exception: Exception | None = None) -> None:
 ```
+
+- You can use `exception` parameter to log the exception details along with a custom message in `error` and `fatal` methods in `v3.2.0` or later.
 
 &nbsp;&nbsp;&nbsp;&nbsp;Each function outputs the log in each log level.
 
@@ -138,10 +140,17 @@ Auto-generated configuration file (parameters not specified):
     "MapleLogger": {
         "ConsoleLogLevel": "INFO",
         "FileLogLevel": "INFO",
-        "MaxLogSize": 3.0,
-        "WorkingDirectory": "/path/to/output/logs",
+        "MaxLogSize": 3,
+        "WorkingDirectory": "logs",
         "FileEncoding": "utf-8",
-        "TimestampFormat": "%F %X.%f"
+        "Formats": {
+            "Timestamp": {
+                "Format": "%F %X.%f",
+                "Digits": null
+            },
+            "ConsoleLogFormat": "[{level}]{func} {callerFunc}{callerLine}",
+            "FileLogFormat": "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})"
+        }
     }
 }
 ```
@@ -153,13 +162,59 @@ Auto-generated configuration file (parameters not specified):
 |**`MaxLogSize`**|Log file max size (MB)|
 |**`WorkingDirectory`**|Log file output path|
 |**`FileEncoding`**|Log file encoding|
-|**`TimestampFormat`**|Log timestamp format|
+|**`Formats`**|Log format settings|
 |**`NameSpaces`**|Namespace specific log level settings|
 
 - To disable the log output, set the log level to `NONE`.
 - You can use a `float` number for the file max size (E.g., `2.5` for `2.5MB`)
 - You can also use a `str` for the file max size (E.g., `"3M"`)
-- You can set the timestamp format with the `TimestampFormat` key. The default format is `%F %X.%f`, which outputs the timestamp as `yyyy-MM-dd HH:mm:ss.fff`. You can use any valid Python datetime format string.
+- You can set the timestamp format with the `Format` key in the `Timestamp` section of the `Formats` settings.
+  - The default format is `%F %X.%f`, which outputs the timestamp as `yyyy-MM-dd HH:mm:ss.fff`. You can use any valid Python datetime format string.
+- You can set the number of digits for the timestamp with the `Digits` key in the `Timestamp` section of the `Formats` settings.
+
+### Formats
+
+&nbsp;&nbsp;&nbsp;&nbsp;`v3.2.0` or later
+
+- You can set the log format for console and file output with the `ConsoleLogFormat` and `FileLogFormat` keys in the `Formats` settings.
+- Also, you can set the timestamp format with the `Format` key in the `Timestamp` section of the `Formats` settings.
+
+```json
+{
+    "MapleLogger": {
+        "Formats": {
+            "Timestamp": {
+                "Format": "%F %X.%f",
+                "Digits": -3
+            },
+            "ConsoleLogFormat": "[{level}]{func} {callerFunc}{callerLine}",
+            "FileLogFormat": "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})"
+        }
+    }
+}
+```
+
+|Key|Value|
+|---|-----|
+|**`Timestamp.Format`**|Timestamp format string|
+|**`Timestamp.Digits`**|Number of digits for the timestamp|
+|**`ConsoleLogFormat`**|Console log format string|
+|**`FileLogFormat`**|File log format string|
+
+- You can use standard Python datetime format strings for the `Timestamp.Format` key. For example, `%F %X.%f` outputs the timestamp as `yyyy-MM-dd HH:mm:ss.fff`.
+- You can set the number of digits for the timestamp with the `Timestamp.Digits` key.
+  - The default value is `null`, which outputs the full length of the timestamp.
+  - However, I recommend using `-3` to output the timestamp with milliseconds, which is the most common format for logging.
+  - You can use a negative number to specify the number of digits to output from the end of the timestamp. For example, `-3` cuts the last three digits of the timestamp, which outputs the timestamp as `yyyy-MM-dd HH:mm:ss.fff`.
+- You can use the following placeholders in the log format strings:
+
+`{pid}`: Process ID  
+`{timestamp}`: Timestamp  
+`{level}`: Log level  
+`{func}`: Function name  
+`{callerName}`: Caller function name  
+`{callerFunc}`: Caller function name (with module name)  
+`{callerLine}`: Caller line number
 
 ### Namespace Specific Log Level Settings
 
