@@ -2,3 +2,5 @@ FILE_FORMAT = '({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({cal
 CONSOLE_FORMAT = '[{level}]{func} {callerFunc}{callerLine}'
 TIMESTAMP_FORMAT = "%F %X.%f"
 MILLISECOND_DIGITS = None
+FILE_MODE_OVERWRITE = 'overwrite'
+FILE_MODE_DAILY = 'daily'

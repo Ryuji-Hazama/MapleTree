@@ -60,10 +60,7 @@ class LoggerConfig(BaseModel):
         try:
 
             super().__init__(**config)
-
-            print("Initializing logger config...")
             self.consoleColors = getConsoleColors()
-
             self.logConfInstance = self.checkConfigFile(config.get(CONFIG_FILE, self.configFile))
             self.checkOutputDirectory(config.get(WORKING_DIRECTORY, None))
             self.setLogFileName(config.get(FILE_MODE, "append"))
