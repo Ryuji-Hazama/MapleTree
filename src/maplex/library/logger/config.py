@@ -299,7 +299,7 @@ class LoggerConfig(BaseModel):
         except MapleInvalidLoggerLevelException as ex:
 
             print(f"{self.consoleColors.Red}Warning: Invalid {fileOrConsole} provided: [{tempLogLevel}]. Using default value.{self.consoleColors.Reset}")
-            return self.LogLevel.INFO
+            return LogLevel.INFO
 
     def setFileEncoding(self, encoding: str) -> None:
 
@@ -375,7 +375,7 @@ class LoggerConfig(BaseModel):
 
         else:
 
-            self.formats.consoleFormat = self.logConf.get(CONSOLE_LOG_FORMAT, None)
+            self.formats.consoleFormat = self.logConf.get(FORMATS, {}).get(CONSOLE_LOG_FORMAT, None)
 
             if self.formats.consoleFormat is None:
 
@@ -390,7 +390,7 @@ class LoggerConfig(BaseModel):
 
         else:
 
-            self.formats.fileFormat = self.logConf.get(FILE_LOG_FORMAT, None)
+            self.formats.fileFormat = self.logConf.get(FORMATS, {}).get(FILE_LOG_FORMAT, None)
 
             if self.formats.fileFormat is None:
 
