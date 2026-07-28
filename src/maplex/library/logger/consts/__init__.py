@@ -19,6 +19,7 @@ __all__ = [
     "ALIGN_WIDTH",
     "CONSOLE_LOG_FORMAT",
     "FILE_LOG_FORMAT",
+    "SEPARATOR",
     "NAME_SPACES",
     "NAME_SPACE",
     # Dictionary keys for internal use
@@ -36,6 +37,7 @@ __all__ = [
     # Default values
     "FILE_FORMAT",
     "CONSOLE_FORMAT",
+    "DEFAULT_SEPARATOR",
     "TIMESTAMP_FORMAT",
     "MILLISECOND_DIGITS",
     "FILE_MODE_OVERWRITE",

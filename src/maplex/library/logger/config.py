@@ -30,6 +30,7 @@ class Formats(BaseModel):
 
     consoleFormat: str | None = None
     fileFormat: str | None = None
+    separator: str | None = None
     timestamp: TimeStamp | None = None
 
 class LoggerConfig(BaseModel):
@@ -70,7 +71,7 @@ class LoggerConfig(BaseModel):
             self.setOutputLogLevels(config.get(CONSOLE_LOG_LEVEL, None), config.get(FILE_LOG_LEVEL, None))
             self.setFileEncoding(config.get(FILE_ENCODING, None))
             self.setTimestampFormat(config.get(PARAM_TIMESTAMP, None))
-            self.setOutputFormat(config.get(CONSOLE_LOG_FORMAT, None), config.get(FILE_LOG_FORMAT, None))
+            self.setOutputFormat(config.get(CONSOLE_LOG_FORMAT, None), config.get(FILE_LOG_FORMAT, None), config.get(SEPARATOR, None))
             self.saveLogSettings(self.logConfInstance)
 
         except Exception as ex:
@@ -361,13 +362,15 @@ class LoggerConfig(BaseModel):
             self.formats.timestamp.timestampFormat = configTimestampFormat
             self.formats.timestamp.digits = configTimestampDigits
 
-    def setOutputFormat(self, consoleFormat: str, fileFormat: str) -> None:
+    def setOutputFormat(self, consoleFormat: str, fileFormat: str, separator: str | None = None) -> None:
 
         """Set output format for console and file logs. Default is "[{level}]{func} {callerFunc}{callerLine}" for console and "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})" for file. You can set this in config file with keys "ConsoleLogFormat" and "FileLogFormat"."""
 
         if self.formats is None:
 
             self.formats = Formats()
+
+        # Console format
 
         if consoleFormat is not None:
 
@@ -384,6 +387,8 @@ class LoggerConfig(BaseModel):
                 formatConf[CONSOLE_LOG_FORMAT] = CONSOLE_FORMAT
                 self.logConf[FORMATS] = formatConf
 
+        # File format
+
         if fileFormat is not None:
 
             self.formats.fileFormat = fileFormat
@@ -397,6 +402,23 @@ class LoggerConfig(BaseModel):
                 self.formats.fileFormat = FILE_FORMAT
                 formatConf = self.logConf.get(FORMATS, {})
                 formatConf[FILE_LOG_FORMAT] = FILE_FORMAT
+                self.logConf[FORMATS] = formatConf
+
+        # Message separator
+
+        if separator is not None:
+
+            self.formats.separator = separator
+
+        else:
+
+            self.formats.separator = self.logConf.get(FORMATS, {}).get(SEPARATOR, None)
+
+            if self.formats.separator is None:
+
+                self.formats.separator = DEFAULT_SEPARATOR
+                formatConf = self.logConf.get(FORMATS, {})
+                formatConf[SEPARATOR] = DEFAULT_SEPARATOR
                 self.logConf[FORMATS] = formatConf
 
     def saveLogSettings(self, logConfInstance: MapleJson | None) -> None:

@@ -166,7 +166,7 @@ class Logger:
 
             if loglevel >= self.config.consoleLogLevel:
                 consolePrefix = self.formatter.format_console(loglevel, callerDepth)
-                print(f"{consolePrefix}: {message}")
+                print(f"{consolePrefix}{self.config.formats.separator}{message}")
         
             if loglevel >= self.config.fileLogLevel:
 
@@ -177,7 +177,7 @@ class Logger:
                     try:
 
                         with open(self.config.logfile, "a", encoding=self.config.encoding) as f:
-                            print(f"{prefixString}: {message}", file=f)
+                            print(f"{prefixString}{self.config.formats.separator}{message}", file=f)
 
                         break
 
