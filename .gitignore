@@ -18,6 +18,6 @@ env.bak/
 venv.bak/
 *.log
 
-work_test_*
+work_test*
 config.json
 class_test/

@@ -149,7 +149,8 @@ Auto-generated configuration file (parameters not specified):
                 "Digits": null
             },
             "ConsoleLogFormat": "[{level}]{func} {callerFunc}{callerLine}",
-            "FileLogFormat": "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})"
+            "FileLogFormat": "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})",
+            "Separator": ": "
         }
     }
 }
@@ -188,7 +189,8 @@ Auto-generated configuration file (parameters not specified):
                 "Digits": -3
             },
             "ConsoleLogFormat": "[{level}]{func} {callerFunc}{callerLine}",
-            "FileLogFormat": "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})"
+            "FileLogFormat": "({pid}) {timestamp} [{level}]{func} {callerName}{callerFunc}({callerLine})",
+            "Separator": ": "
         }
     }
 }
@@ -200,6 +202,7 @@ Auto-generated configuration file (parameters not specified):
 |**`Timestamp.Digits`**|Number of digits for the timestamp|
 |**`ConsoleLogFormat`**|Console log format string|
 |**`FileLogFormat`**|File log format string|
+|**`Separator`**|Separator string between prefix and message|
 
 - You can use standard Python datetime format strings for the `Timestamp.Format` key. For example, `%F %X.%f` outputs the timestamp as `yyyy-MM-dd HH:mm:ss.fff`.
 - You can set the number of digits for the timestamp with the `Timestamp.Digits` key.

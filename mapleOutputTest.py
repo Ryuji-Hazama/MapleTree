@@ -163,6 +163,8 @@ def runTest():
 
             logger.ShowError(e, "An exception occurred during division. (Error level message with stack trace)")
             logger.ShowError(e, "An exception occurred during division. (Fatal level message with stack trace)", True)
+            logger.error("An exception occurred during division. (Error level message with stack trace, new method)", e)
+            logger.fatal("An exception occurred during division. (Fatal level message with stack trace, new method)", e)
 
         noFucnLogger = maplex.Logger()
         noFucnLogger.info("This is a log message from a logger without function name.")
