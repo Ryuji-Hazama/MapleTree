@@ -14,7 +14,7 @@ authors = [
 ]
 dependencies = [
     "cryptography>=49.0.0",
-    "pydantic>=2.13.4"
+    "pydantic>=2.13.4",
 ]
 classifiers = [
     "Programming Language :: Python :: 3.12",

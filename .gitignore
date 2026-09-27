@@ -17,6 +17,7 @@ ENV/
 env.bak/
 venv.bak/
 *.log
+.vscode/
 
 work_test*
 config.json
